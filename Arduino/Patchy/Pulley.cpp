@@ -1,32 +1,47 @@
+#include <Arduino.h>
 #include "Pulley.h"
 
-int const STEPS_PER_REV = 100;
-int const STEP_DELAY = 1;
+/** Stepper Constants  **/
+const byte STEP_DELAY = 1; // The delay between steps
 
-Pulley::Pulley(int steppin, int dirpin) {
-  this->step_pin = steppin;
-  this->dir_pin = dirpin;
-  pulley = new Stepper(STEPS_PER_REV, this->step_pin, this->dir_pin);
+Pulley::Pulley(const byte stepper_dir_pin, const byte stepper_step_pin, const byte limit_switch_pin_pos, const byte limit_switch_pin_neg) {
+  this->stepper_step_pin = stepper_step_pin;
+  this->stepper_dir_pin = stepper_dir_pin;
 }
   
-void Pulley::moveClockwise(int steps) {
-  digitalWrite(this->dir_pin, HIGH);
+bool Pulley::moveClockwise(const unsigned int steps) {
+  digitalWrite(this->stepper_dir_pin, HIGH);
+  return this->move(steps);
+}
 
+bool Pulley::moveCounterClockwise(const unsigned int steps) {
+  digitalWrite(this->stepper_dir_pin, LOW);
+  return this->move(steps);
+}
+
+bool Pulley::isEdge() {
+  return digitalRead(this->limit_switch_pin);
+}
+
+bool Pulley::move(const unsigned int steps) {
   for (int i = 0; i < abs(steps); i++) {
-    digitalWrite(this->step_pin, HIGH);
-    delay(STEP_DELAY);
-    digitalWrite(this->step_pin, LOW);
-    delay(STEP_DELAY);
+    if (!this->takeStep()){
+      return false;
+    }
+  }
+  return true;
+}
+
+bool Pulley::takeStep() {
+  digitalWrite(this->stepper_step_pin, HIGH);
+  delay(STEP_DELAY);
+  digitalWrite(this->stepper_step_pin, LOW);
+  delay(STEP_DELAY);
+
+  if (this->isEdge()){ 
+    return false; 
+  } else {
+    return true;
   }
 }
 
-void Pulley::moveCounterClockwise(int steps) {
-  digitalWrite(this->dir_pin, LOW);
-
-  for (int i = 0; i < abs(steps); i++) {
-    digitalWrite(this->step_pin, HIGH);
-    delay(STEP_DELAY);
-    digitalWrite(this->step_pin, LOW);
-    delay(STEP_DELAY);
-  }
-}
