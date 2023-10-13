@@ -4,7 +4,8 @@
 
 #include <Arduino.h>
 
-class Pulley {
+class Pulley
+{
 public:
     /**
      * @brief Constructor for the Pulley class.
@@ -33,9 +34,9 @@ public:
     bool moveClockwise(const unsigned int steps);
 
 private:
-    byte stepper_step_pin;      // Pin for generating step pulses
-    byte stepper_dir_pin;       // Pin for controlling direction
-    byte limit_switch_pin;      // Limit switch pin
+    byte stepper_step_pin; // Pin for generating step pulses
+    byte stepper_dir_pin;  // Pin for controlling direction
+    byte limit_switch_pin; // Limit switch pin
 
     /**
      * @brief Check if the pulley is at the limit position.
