@@ -5,7 +5,7 @@ async def listen_serial(serial_communicator):
     while True:
         try:
             received_msg = await serial_communicator.receiveMsg()
-            print(f"Received message: {received_msg}")
+            print(f"{received_msg}")
         except Exception as e:
             print(f"Error receiving message: {e}")
 
