@@ -34,6 +34,7 @@ public:
      * @param message The message to be logged.
      */
     void logMessage(const LogLevel level, const String &message);
+    void logMessage(const LogLevel level, const int message);
 
     /**
      * Log a newline.

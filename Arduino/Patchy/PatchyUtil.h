@@ -29,6 +29,7 @@ public:
      */
     enum class Status
     {
+        Unset = -1,
         Failure,
         Success,
         Invalid
