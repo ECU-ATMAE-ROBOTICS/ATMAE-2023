@@ -26,7 +26,7 @@ const int Y_AXIS_LS_NEG_PIN = 0;
 const int STEPS = 250;
 
 /** Parsing Variables **/
-bool parsingStarted = false;
+bool instructionRecieved = false;
 String receivedData = "";
 
 /** Pulleys **/
@@ -36,18 +36,22 @@ Pulley *yAxis;
 //** Logger **/
 Logger *logger;
 
+//** I2C **/
+PatchyUtil::Status STATUS;
+
 void setup()
 {
   logger = new Logger(9600); // Initialize the Logger with a baud rate of 9600
-  Wire.begin(0x8);
+  Wire.begin(8);
   Wire.onReceive(receiveInstruction);
+  Wire.onRequest(requestStatus);
 
   // Initialize the Pulleys
   xAxis = new Pulley(X_AXIS_DIR_PIN, X_AXIS_STEP_PIN, X_AXIS_LS_POS_PIN, X_AXIS_LS_NEG_PIN);
   yAxis = new Pulley(Y_AXIS_DIR_PIN, Y_AXIS_STEP_PIN, Y_AXIS_LS_POS_PIN, Y_AXIS_LS_NEG_PIN);
 
   // Log the initialization
-  logger->logMessage(INFO, "Setup completed");
+  logger->logMessage(INFO, "Setup completed\n");
 }
 
 void loop()
@@ -60,12 +64,13 @@ void receiveInstruction(int howMany)
   while (Wire.available())
   {
     char character = Wire.read();
-    if (character == '<' && (!parsingStarted))
+    if (character == '<' && (!instructionRecieved))
     {
-      parsingStarted = true;
+      STATUS = PatchyUtil::Status::Unset;
+      instructionRecieved = true;
       receivedData = "";
     }
-    else if (character == '>' && (parsingStarted))
+    else if (character == '>' && (instructionRecieved))
     {
       logger->logMessage(INFO, "Instruction Recieved");
 
@@ -73,9 +78,9 @@ void receiveInstruction(int howMany)
       logger->logMessage(INFO, receivedData + " -> " + hashedData);
 
       interpretInstruction(hashedData);
-      parsingStarted = false;
+      instructionRecieved = false;
     }
-    else if (parsingStarted)
+    else if (instructionRecieved)
     {
       receivedData += character;
     }
@@ -101,6 +106,7 @@ void interpretInstruction(const long input)
     sendStatus(PatchyUtil::Status::Invalid);
     return;
   }
+  executeInstruction(axis, direction);
 }
 
 void executeInstruction(PatchyUtil::Axis axis, PatchyUtil::Direction direction)
@@ -137,26 +143,35 @@ void executeInstruction(PatchyUtil::Axis axis, PatchyUtil::Direction direction)
 }
 
 void sendStatus(const PatchyUtil::Status status)
-{
-  // Send the status over the wire
-  Wire.beginTransmission(0x8);
-  Wire.write(static_cast<byte>(status));
-  Wire.endTransmission(false);
-
+{ 
+  STATUS = status;
+  
   // Log the status
   if (status == PatchyUtil::Status::Success)
   {
-    logger->logMessage(INFO, "Action successful.");
+    logger->logMessage(INFO, "Action successful");
   }
   else if (status == PatchyUtil::Status::Failure)
   {
-    logger->logMessage(WARNING, "Action failed.");
+    logger->logMessage(WARNING, "Action failed");
   }
   else
   {
-    logger->logMessage(WARNING, "Invalid input received.");
+    logger->logMessage(WARNING, "Invalid input received");
   }
 
   logger->logMessage(INFO, "Instruction Completed");
+}
+
+void requestStatus()
+{
+  // Send the status over the wire
+  logger->logMessage(INFO,"Request for status");
+  while (STATUS == PatchyUtil::Status::Unset)
+  {
+    logger->logMessage(INFO,"Status is currently Unset");
+  }
+  logger->logMessage(INFO, "Status: " + String(static_cast<int>(STATUS)));
+  Wire.write(static_cast<int>(STATUS));
   logger->newLine();
 }
