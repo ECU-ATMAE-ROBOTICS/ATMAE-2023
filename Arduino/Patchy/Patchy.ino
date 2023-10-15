@@ -172,6 +172,7 @@ void interpretInstruction(const long input)
     sendStatus(PatchyUtil::Status::Invalid);
     return;
   }
+  executeInstruction(axis, direction);
 }
 
 void executeMovementInstruction(PatchyUtil::Axis axis, PatchyUtil::Instruction instructionInput)
