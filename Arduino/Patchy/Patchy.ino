@@ -47,7 +47,7 @@ void setup()
   yAxis = new Pulley(Y_AXIS_DIR_PIN, Y_AXIS_STEP_PIN, Y_AXIS_LS_POS_PIN, Y_AXIS_LS_NEG_PIN);
 
   // Log the initialization
-  logger->logMessage(INFO, "Setup completed");
+  logger->logMessage(INFO, "Setup completed\n");
 }
 
 void loop()
@@ -101,6 +101,7 @@ void interpretInstruction(const long input)
     sendStatus(PatchyUtil::Status::Invalid);
     return;
   }
+  executeInstruction(axis, direction);
 }
 
 void executeInstruction(PatchyUtil::Axis axis, PatchyUtil::Direction direction)
@@ -138,9 +139,11 @@ void executeInstruction(PatchyUtil::Axis axis, PatchyUtil::Direction direction)
 
 void sendStatus(const PatchyUtil::Status status)
 {
+  logger->logMessage(INFO, "Status: " + String(static_cast<int>(status)));
+
   // Send the status over the wire
   Wire.beginTransmission(0x8);
-  Wire.write(static_cast<byte>(status));
+  Wire.write(String(static_cast<int>(status)).c_str());
   Wire.endTransmission(false);
 
   // Log the status

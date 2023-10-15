@@ -27,10 +27,10 @@ public:
     /**
      * Enum defining different completion statuses .
      */
-    enum class Status : byte
+    enum class Status
     {
-        Success,
         Failure,
+        Success,
         Invalid
     };
 
