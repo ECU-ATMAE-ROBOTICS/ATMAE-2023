@@ -34,11 +34,12 @@ class YoloModel:
         """
         Locate the position of a cat in the given image.
         """
-        height, width = image.shape[:2]
-        blob = cv2.dnn.blobFromImage(image, 1/255.0, (YoloConstants.INPUT_WIDTH, YoloConstants.INPUT_HEIGHT), swapRB=True, crop=False)
+        resized_image = cv2.resize(image, (YoloConstants.INPUT_WIDTH, YoloConstants.INPUT_HEIGHT))
+
+        height, width = resized_image.shape[:2]
+        blob = cv2.dnn.blobFromImage(resized_image, 1/255.0, (YoloConstants.INPUT_WIDTH, YoloConstants.INPUT_HEIGHT), swapRB=True, crop=False)
         self.net.setInput(blob)
-        outputLayers = self.net.getUnconnectedOutLayersNames()
-        outs = self.net.forward(outputLayers)
+        outs = self.net.forward(self.net.getUnconnectedOutLayersNames())
 
         catBoxes = []
         confidences = []
@@ -56,4 +57,8 @@ class YoloModel:
                     confidences.append(float(confidence))
 
         self.logger.info(f"Found {len(catBoxes)} cats in the image.")
+
+        # Explicit memory release
+        del resized_image, blob, outs
+
         return catBoxes, confidences
