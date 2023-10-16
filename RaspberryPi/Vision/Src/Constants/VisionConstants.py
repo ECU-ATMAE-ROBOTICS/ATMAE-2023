@@ -17,3 +17,6 @@ class DisplayConstants:
     FONT_COLOR = (0, 0, 255)
     LINE_THICKNESS = 2
     DISPLAY_SPEED = 1000
+
+class VisionConstants:
+    CENTER_TOLERANCE = 20
