@@ -11,6 +11,7 @@ class YoloModel:
         """
         self.net = self.loadYoloModel(weightsPath, cfgPath)
         self.classes = self.loadCocoNames(namesPath)
+        self.logger = logging.getLogger(__name__)
 
     @staticmethod
     def loadYoloModel(weightsPath: str, cfgPath: str) -> cv2.dnn_Net:
@@ -54,5 +55,5 @@ class YoloModel:
                     catBoxes.append([x, y, w, h])
                     confidences.append(float(confidence))
 
-        logging.info(f"Found {len(catBoxes)} cats in the image.")
+        self.logger.info(f"Found {len(catBoxes)} cats in the image.")
         return catBoxes, confidences

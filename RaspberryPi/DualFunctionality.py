@@ -1,10 +1,12 @@
 import asyncio
 import logging
 import cv2
+import threading
 from Vision.Src.Constants.VisionConstants import DisplayConstants, Paths
-from Vision.Src.VisionController import VisionController
+from RaspberryPi.Vision.VisionController import VisionController
 from Vision.Src.YoloModel import YoloModel
 from Communicator.Src.I2CController import I2CController
+from Communicator.Src.SerialController import SerialController
 
 async def main() -> None:
     """
@@ -35,7 +37,20 @@ async def main() -> None:
     else:
         logging.info("No cat detected.")
 
+def runSerialController():
+    """
+    Function to run the serial controller in a separate thread.
+    """
+    controller = SerialController()
+    try:
+        asyncio.run(controller.listenAndPrint())
+    except KeyboardInterrupt:
+        controller.close()
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+    serial_thread = threading.Thread(target=runSerialController)
+    serial_thread.start()
 
     asyncio.run(main())
