@@ -1,5 +1,6 @@
 import cv2
 import logging
+import numpy as np
 from .Constants.VisionConstants import DisplayConstants, Paths
 from .YoloModel import YoloModel
 
