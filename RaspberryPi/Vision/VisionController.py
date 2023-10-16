@@ -84,4 +84,5 @@ class VisionController:
         """
         self.logger.info("Processing frame.")
         direction = self.directionFromCenter(frame)
+        self.logger.info(f"Direction found: {direction}")
         return direction

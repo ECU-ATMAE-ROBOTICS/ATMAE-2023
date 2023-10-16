@@ -29,7 +29,7 @@ class YoloModel:
         with open(namesPath, 'r') as f:
             classes = f.read().strip().split('\n')
         return classes
-
+    
     def locateCat(self, image: np.ndarray) -> Tuple[List[List[int]], List[float]]:
         """
         Locate the position of a cat in the given image.

@@ -8,8 +8,8 @@ class Paths:
 
 class YoloConstants:
     CONF_THRESHOLD = 0.5
-    INPUT_WIDTH = 416
-    INPUT_HEIGHT = 416
+    INPUT_WIDTH = 320
+    INPUT_HEIGHT = 320
 
 class DisplayConstants:
     FONT = cv2.FONT_HERSHEY_SIMPLEX
