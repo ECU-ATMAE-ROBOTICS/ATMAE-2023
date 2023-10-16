@@ -44,3 +44,7 @@ __pycache__/
 # Ignore IDE-specific directories
 .idea/
 .vscode/
+
+# Custom 
+/RaspberryPi/Vision/Src/Model/yolov3.weights
+/RaspberryPi/Vision/Src/Model/yolov3.cfg

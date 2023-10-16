@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from CommunicatorCommon.I2CCommunicator import I2CCommunicator
+
 class I2CController:
     """
     A class for controlling I2C communication.
