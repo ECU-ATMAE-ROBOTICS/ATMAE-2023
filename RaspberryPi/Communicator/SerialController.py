@@ -28,6 +28,7 @@ class SerialController:
         while True:
             receivedMessage = await self.serialCommunicator.receiveMessage(timeout)
             if receivedMessage:
+                logging.info(f"Received message: {receivedMessage}")
                 print(receivedMessage, end='')
 
     def close(self) -> None:
@@ -37,9 +38,7 @@ class SerialController:
         self.serialCommunicator.close()
 
 
-# Example usage:
 if __name__ == "__main__":
-    # logging.basicConfig(level=logging.INFO)
     controller = SerialController()
     try:
         asyncio.run(controller.listenAndPrint())
