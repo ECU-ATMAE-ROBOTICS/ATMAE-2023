@@ -1,6 +1,7 @@
 import numpy as np
 import logging
 from .Src.YoloModel import YoloModel
+from .Src.Constants.VisionConstants import VisionConstants
 
 class VisionController:
     def __init__(self, model: YoloModel):
@@ -21,7 +22,8 @@ class VisionController:
             frame (np.ndarray): Input frame in the form of a NumPy array.
         
         Returns:
-            str: A string indicating the direction of the closest cat from the center.
+            str: A string indicating the direction of the closest cat from the center. 
+                If the cat is within the tolerance range of the center, it returns "center".
         """
         catBoxes, _ = self.model.locateCat(frame)
 
@@ -51,7 +53,10 @@ class VisionController:
         horizontalDistance = abs(centerX - catCenterX)
         verticalDistance = abs(centerY - catCenterY)
 
-        if horizontalDistance > verticalDistance:
+        if horizontalDistance <= VisionConstants.CENTER_TOLERANCE and verticalDistance <= VisionConstants.CENTER_TOLERANCE:
+            self.logger.info("Cat is within the tolerance range of the center.")
+            return "center"
+        elif horizontalDistance > verticalDistance:
             if catCenterX < centerX:
                 self.logger.info("Cat is on the right side.")
                 return "right"
@@ -65,6 +70,7 @@ class VisionController:
             else:
                 self.logger.info("Cat is above the center.")
                 return "up"
+
 
     def processFrame(self, frame: np.ndarray) -> str:
         """
