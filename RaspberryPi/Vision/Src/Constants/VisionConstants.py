@@ -1,10 +1,10 @@
 import cv2
 
 class Paths:
-    WEIGHTS_PATH = 'RaspberryPi\Vision\Src\Model\yolov3.weights'
-    CFG_PATH = 'RaspberryPi\Vision\Src\Model\yolov3.cfg'
-    NAMES_PATH = 'RaspberryPi\Vision\Src\Model\coco.names'
-    IMAGE_PATH = 'RaspberryPi\Vision\Src\Model\input_image.jpg'
+    WEIGHTS_PATH = 'RaspberryPi/Vision/Src/Model/yolov3.weights'
+    CFG_PATH = 'RaspberryPi/Vision/Src/Model/yolov3.cfg'
+    NAMES_PATH = 'RaspberryPi/Vision/Src/Model/coco.names'
+    IMAGE_PATH = 'RaspberryPi/Vision/Src/Model/input_image.jpg'
 
 class YoloConstants:
     CONF_THRESHOLD = 0.5

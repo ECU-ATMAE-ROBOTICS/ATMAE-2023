@@ -47,7 +47,7 @@ async def main() -> None:
     """
     i2cController = I2CController()
     visionController = VisionController(
-        YoloModel(Paths.weightsPath, Paths.cfgPath, Paths.namesPath)
+        YoloModel(Paths.WEIGHTS_PATH, Paths.CFG_PATH, Paths.NAMES_PATH)
     )
 
     viewer = Viewer()
