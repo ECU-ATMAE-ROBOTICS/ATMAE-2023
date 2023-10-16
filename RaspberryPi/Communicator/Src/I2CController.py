@@ -5,12 +5,7 @@ from CommunicatorCommon.I2CCommunicator import I2CCommunicator
 class I2CController:
     """
     A class for controlling I2C communication.
-
-    Attributes:
-        addr (int): The address of the I2C device.
     """
-
-    addr: int
 
     def __init__(self, addr: int=8) -> None:
         """
@@ -21,6 +16,7 @@ class I2CController:
         """
         self.addr = addr
         self.i2cCommunicator = I2CCommunicator()
+        self.logger = logging.getLogger(__name__)
 
     async def send(self, cmd: str) -> None:
         """
@@ -30,7 +26,7 @@ class I2CController:
             cmd (str): The command to send.
         """
         bytesToSend = bytes(f"<{cmd}>", "utf-8")
-        logging.info(f"Sending message: {bytesToSend}")
+        self.logger.info(f"Sending message: {bytesToSend}")
         await self.i2cCommunicator.sendMsg(self.addr, bytesToSend)
         await asyncio.sleep(0.5)
 
@@ -49,10 +45,10 @@ class I2CController:
             try:
                 data = await self.i2cCommunicator.receiveMsg(self.addr, amt)
                 found = True
-                logging.info(f"Received data: {data}")
+                self.logger.info(f"Received data: {data}")
                 return int.from_bytes(data, byteorder='big')
             except Exception as e:
-                logging.error(f"Error occurred: {e}")
+                self.logger.error(f"Error occurred: {e}")
                 await asyncio.sleep(0.5)
 
         return None
