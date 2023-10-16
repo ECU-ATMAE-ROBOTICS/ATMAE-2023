@@ -24,7 +24,7 @@ async def processInstruction(i2cController, instruction):
         logging.error("Failed to receive data")
 
 
-async def handleDirection(i2cController, visionController, direction):
+async def handleDirection(i2cController, direction):
     """
     Handle the direction and process the appropriate instructions.
 
@@ -59,7 +59,7 @@ async def main() -> None:
             direction = visionController.processFrame(frame)
 
             if direction:
-                await handleDirection(i2cController, visionController, direction)
+                await handleDirection(i2cController, direction)
             else:
                 logging.info("No cat detected.")
         else:
