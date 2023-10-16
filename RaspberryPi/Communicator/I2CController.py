@@ -1,29 +1,24 @@
 import asyncio
 import logging
 from CommunicatorCommon.I2CCommunicator import I2CCommunicator
-
 class I2CController:
     """
     A class for controlling I2C communication.
 
     Attributes:
-        arduinoAddr (int): The address of the I2C device.
+        addr (int): The address of the I2C device.
     """
 
-    arduinoAddr: int
+    addr: int
 
-    def __init__(self, debug: bool = False) -> None:
+    def __init__(self, addr: int=8) -> None:
         """
         Initialize the I2CController.
 
         Args:
-            debug (bool): Whether to enable debugging mode.
+            addr(int): The address to connect to.
         """
-        self.arduinoAddr = 8
-
-        if debug:
-            logging.basicConfig(level=logging.INFO)
-        
+        self.addr = addr
         self.i2cCommunicator = I2CCommunicator()
 
     async def send(self, cmd: str) -> None:
@@ -34,12 +29,16 @@ class I2CController:
             cmd (str): The command to send.
         """
         bytesToSend = bytes(f"<{cmd}>", "utf-8")
-        await self.i2cCommunicator.sendMsg(self.arduinoAddr, bytesToSend)
+        logging.info(f"Sending message: {bytesToSend}")
+        await self.i2cCommunicator.sendMsg(self.addr, bytesToSend)
         await asyncio.sleep(0.5)
 
-    async def receive(self) -> int:
+    async def receive(self, amt=1) -> int:
         """
         Receive data via I2C.
+
+        Args:
+            amt (int): The amount of bytes to read.
 
         Returns:
             int: The received data.
@@ -47,10 +46,12 @@ class I2CController:
         found = False
         while not found:
             try:
-                data = await self.i2cCommunicator.receiveMsg(self.arduinoAddr, 1)
+                data = await self.i2cCommunicator.receiveMsg(self.addr, amt)
                 found = True
+                logging.info(f"Received data: {data}")
                 return int.from_bytes(data, byteorder='big')
             except Exception as e:
+                logging.error(f"Error occurred: {e}")
                 await asyncio.sleep(0.5)
 
         return None
@@ -58,10 +59,7 @@ class I2CController:
 
 if __name__ == "__main__":
     async def main() -> None:
-        """
-        The main function for controlling I2C communication.
-        """
-        i2cController = I2CController(debug=False)
+        i2cController = I2CController()
 
         cmd = input("Enter Instruction: ")
 
@@ -72,7 +70,5 @@ if __name__ == "__main__":
             print(f"Status Received: {data}")
         else:
             print("Failed to receive data")
-    
-    asyncio.run(main())
 
-        
+    asyncio.run(main())
