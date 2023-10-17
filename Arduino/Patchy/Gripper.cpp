@@ -18,7 +18,6 @@ Gripper::Gripper(const byte servoPin, const byte linActPin1, const byte linActPi
   this->gripperServo = new Servo();
   this->gripperServo->attach(servoPin);
 
-
   digitalWrite(this->enPin, ACTUATOR_SPEED);
 }
 
