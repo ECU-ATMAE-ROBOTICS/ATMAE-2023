@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import threading
+import cv2
 from Vision.Src.Constants.VisionConstants import Paths
 from Vision.VisionController import VisionController
 from Vision.Src.YoloModel import YoloModel
@@ -56,6 +57,9 @@ async def main() -> None:
         frame = await viewer.captureFrame()
 
         if frame is not None:
+            cv2.imshow("frame", frame)
+            cv2.waitKey(1)
+            
             direction = visionController.processFrame(frame)
 
             if direction:
