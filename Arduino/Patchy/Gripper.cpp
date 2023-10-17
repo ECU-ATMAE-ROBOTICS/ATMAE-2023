@@ -3,40 +3,37 @@
 
 const byte GRIP_DELAY = 15; //delay between switching directions
 
-Gripper::Gripper(const byte servo_pin)
+const byte OPEN_ANGLE = 0;
+const byte CLOSE_ANGLE = 180;
+const byte UP_ANGLE = 0;
+const byte DOWN_ANGLE = 180;
+const byte FLOOR_DROP = 180
+
+Gripper::Gripper(const byte servo_pin, const byte linAct_pin)
 {
   this->servo_pin = servo_pin;
 }
 
-bool Gripper::open(const bool state)
+bool Gripper::open()
 {
-  digitalWrite(this->servo_pin, LOW)
-  return this-> 
+  digitalWrite(this->servo_pin, LOW);
+  return this->move(OPEN_ANGLE);
 }
 
-bool Gripper::close(const bool state)
+bool Gripper::close()
 {
-  digitalWrite(this->servo_pin, HIGH)
-  return this->
+  digitalWrite(this->servo_pin, HIGH);
+  return this->move(CLOSE_ANGLE);
 }
 
-Servo myGripper;  // create servo object to control a servo
-// twelve servo objects can be created on most boards
-
-int pos = 0;    // variable to store the servo position
-
-void setup() {
-  myGripper.attach(9);  // attaches the servo on pin 9 to the servo object
+bool Gripper::up()
+{
+  digitalWrite(this->linAct_pin, LOW);
+  return this->move(UP_ANGLE);
 }
 
-void loop() {
-  for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
-    // in steps of 1 degree
-    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(15);                       // waits 15 ms for the servo to reach the position
-  }
-  for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
-    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(15);                       // waits 15 ms for the servo to reach the position
-  }
+bool Gripper::down()
+{
+  digitalWrite(this->linAct_pin, HIGH);
+  return this->move(DOWN_ANGLE);
 }

@@ -12,31 +12,33 @@ public:
   * @brief Constructor for the Gripper class.
   *
   * @param servo_pin The pin for controlling the servo
+  * @param linAct_pin The pine for controlling the Linear Actuator
   */
-  Gripper(const byte servo_pin);
+  Gripper(const byte servo_pin, const byte linaAct_pin);
 
   /**
   * @brief Move the gripper into an open state
   *
-  * @param state Tells the gripper to open if false
   * @return True if the movement was successful, false otherwise.
   */
-  bool open(const bool state);
+  bool open();
 
   /**
   * @brief Move the gripper into a closed state
   *
-  * @param state Tells the gripper to close if true
   * @return True if the movement was successful, false otherwise.
   */
-  bool close(const bool state);
+  bool close();
 
+  bool up();
+
+  bool down();
   
-  bool move(const unsigned int pos);
+  bool move(const unsigned int angles);
 
 private:
   byte servo_pin; //pin for controlling servo
-
-}
+  byte linAct_pin; //pin for controlling linear actuator 
+};
 
 #endif
