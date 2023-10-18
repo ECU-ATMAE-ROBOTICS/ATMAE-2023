@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include "Pulley.h"
 #include "PatchyUtil.h"
+#include "Gripper.h"
 
 /**
  * Call order:
@@ -24,6 +25,13 @@ const int Y_AXIS_LS_POS_PIN = 0;
 const int Y_AXIS_LS_NEG_PIN = 0;
 
 const int STEPS = 250;
+
+/** Gripper Constants **/
+const int SERVO_PIN = 0;
+const int LIN_ACT_PIN1 = 0;
+const int LIN_ACT_PIN2 = 0;
+
+const 
 
 /** Parsing Variables **/
 bool instructionRecieved = false;
