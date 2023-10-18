@@ -45,6 +45,6 @@ __pycache__/
 .idea/
 .vscode/
 
-# Custom 
-/RaspberryPi/Vision/Src/Model/yolov3.weights
-/RaspberryPi/Vision/Src/Model/yolov3.cfg
+# Custom
+/RaspberryPi/Vision/Src/Model/yolov3-tiny.weights
+/RaspberryPi/Vision/Src/Model/yolov3-tiny.cfg
