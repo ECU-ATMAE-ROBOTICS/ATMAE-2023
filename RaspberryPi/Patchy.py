@@ -48,7 +48,7 @@ async def handleDirection(i2cController, direction):
         await processInstruction(i2cController, direction)
 
 
-async def main() -> None:
+async def main(showFrame: bool=False) -> None:
     """
     Main coroutine to continuously capture frames and search for cats.
     """
@@ -61,10 +61,12 @@ async def main() -> None:
 
     while True: # System Loop
         frame = await viewer.captureFrame()
-
+        
         if frame is not None:
-            cv2.imshow("frame", frame)
-            cv2.waitKey(1)
+
+            if showFrame:
+                cv2.imshow("frame", frame)
+                cv2.waitKey(1)
             
             direction = visionController.processFrame(frame)
 
@@ -103,4 +105,4 @@ if __name__ == "__main__":
     serialThread = threading.Thread(target=runSerialController)
     serialThread.start()
 
-    asyncio.run(main())
+    asyncio.run(main(True))
