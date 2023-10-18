@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from typing import Optional
 from CommunicatorCommon.SerialCommunicator import SerialCommunicator
 
@@ -17,7 +16,6 @@ class SerialController:
             baudRate (int): The baud rate for the serial communication.
         """
         self.serialCommunicator = SerialCommunicator(port, baudRate)
-        self.logger = logging.getLogger(__name__)
 
     async def listenAndPrint(self, timeout: Optional[float] = None) -> None:
         """
@@ -29,7 +27,6 @@ class SerialController:
         while True:
             receivedMessage = await self.serialCommunicator.receiveMessage(timeout)
             if receivedMessage:
-                self.logger.info(f"Received message: {receivedMessage}")
                 print(receivedMessage, end='')
 
     def close(self) -> None:

@@ -1,7 +1,7 @@
 # Internal
-from Vision.Src.Constants.VisionConstants import Paths
+from Vision.Src.Constants.VisionConstants import ColorConstants
 from Vision.VisionController import VisionController
-from Vision.Src.YoloModel import YoloModel
+from Vision.Src.ColorModel import ColorModel
 from Communicator.Src.I2CController import I2CController
 from Communicator.Src.SerialController import SerialController
 from VisionCommon.Viewer import Viewer
@@ -41,10 +41,10 @@ async def handleDirection(i2cController, direction):
         direction (str): The direction of the cat relative to the frame center.
     """
     if direction == "center":
-        logging.info("Cat is at the center. Sending 'grab' instruction.")
+        logging.info("Color is at the center. Sending 'grab' instruction.")
         await processInstruction(i2cController, "grab")
     else:
-        logging.info(f"Cat is further from the center in the {direction} direction.")
+        logging.info(f"Color is further from the center in the {direction} direction.")
         await processInstruction(i2cController, direction)
 
 
@@ -54,30 +54,35 @@ async def main(showFrame: bool=False) -> None:
     """
     i2cController = I2CController()
     visionController = VisionController(
-        YoloModel(Paths.WEIGHTS_PATH, Paths.CFG_PATH, Paths.NAMES_PATH)
+        ColorModel(ColorConstants.PINK_LOWER_BOUND,
+        ColorConstants.PINK_UPPER_BOUND)
     )
 
     viewer = Viewer()
 
     while True: # System Loop
         frame = await viewer.captureFrame()
+        direction, corners = visionController.processFrame(frame)
         
         if frame is not None:
 
             if showFrame:
+                if corners is not None and len(corners) == 4:
+                    cv2.rectangle(frame, corners[0], corners[2], (255, 0, 0), 2)
                 cv2.imshow("frame", frame)
                 cv2.waitKey(1)
             
-            direction = visionController.processFrame(frame)
+            
 
             if direction:
                 await handleDirection(i2cController, direction)
             else:
-                logging.info("No cat detected.")
+                logging.info("No color detected.")
         else:
             logging.warning("Frame capture failed.")
-        
-        time.sleep(3) # Sleep so frame capture isn't spamming. 
+            
+        print()
+        time.sleep(1) # Sleep so frame capture isn't spamming. 
 
 
 def runSerialController():
@@ -93,14 +98,6 @@ def runSerialController():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     logger = logging.getLogger()
-
-    serialLogger = logging.getLogger('Serial')
-    serialLogger.setLevel(logging.INFO)
-    serialFormatter = logging.Formatter('%(asctime)s - [Serial] - %(levelname)s - %(message)s')
-    serialHandler = logging.StreamHandler()
-    serialHandler.setLevel(logging.INFO)
-    serialHandler.setFormatter(serialFormatter)
-    logger.addHandler(serialHandler)
 
     serialThread = threading.Thread(target=runSerialController)
     serialThread.start()
