@@ -1,16 +1,5 @@
 import cv2
 
-class Paths:
-    WEIGHTS_PATH = 'RaspberryPi/Vision/Src/Model/yolov3-tiny.weights'
-    CFG_PATH = 'RaspberryPi/Vision/Src/Model/yolov3-tiny.cfg'
-    NAMES_PATH = 'RaspberryPi/Vision/Src/Model/coco.names'
-    IMAGE_PATH = 'RaspberryPi/Vision/Src/Model/input_image.jpg'
-
-class YoloConstants:
-    CONF_THRESHOLD = 0.5
-    INPUT_WIDTH = 320
-    INPUT_HEIGHT = 320
-
 class DisplayConstants:
     FONT = cv2.FONT_HERSHEY_SIMPLEX
     FONT_SCALE = 1
@@ -20,3 +9,9 @@ class DisplayConstants:
 
 class VisionConstants:
     CENTER_TOLERANCE = 20
+    
+class ColorConstants:
+    
+    PINK_LOWER_BOUND = (140, 100, 100)
+    PINK_UPPER_BOUND = (180, 255, 255)
+

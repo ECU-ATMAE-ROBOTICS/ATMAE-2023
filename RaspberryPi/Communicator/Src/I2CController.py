@@ -16,7 +16,6 @@ class I2CController:
         """
         self.addr = addr
         self.i2cCommunicator = I2CCommunicator()
-        self.logger = logging.getLogger(__name__)
 
     async def send(self, cmd: str) -> None:
         """
@@ -26,7 +25,6 @@ class I2CController:
             cmd (str): The command to send.
         """
         bytesToSend = bytes(f"<{cmd}>", "utf-8")
-        self.logger.info(f"Sending message: {bytesToSend}")
         await self.i2cCommunicator.sendMsg(self.addr, bytesToSend)
         await asyncio.sleep(0.5)
 
@@ -45,10 +43,8 @@ class I2CController:
             try:
                 data = await self.i2cCommunicator.receiveMsg(self.addr, amt)
                 found = True
-                self.logger.info(f"Received data: {data}")
                 return int.from_bytes(data, byteorder='big')
             except Exception as e:
-                self.logger.error(f"Error occurred: {e}")
                 await asyncio.sleep(0.5)
 
         return None
