@@ -1,13 +1,19 @@
-import asyncio
-import logging
-import threading
-import cv2
+# Internal
 from Vision.Src.Constants.VisionConstants import Paths
 from Vision.VisionController import VisionController
 from Vision.Src.YoloModel import YoloModel
 from Communicator.Src.I2CController import I2CController
 from Communicator.Src.SerialController import SerialController
 from VisionCommon.Viewer import Viewer
+
+# Built-in
+import asyncio
+import logging
+import threading
+import time
+
+# Third-Party
+import cv2
 
 async def processInstruction(i2cController, instruction):
     """
@@ -53,7 +59,7 @@ async def main() -> None:
 
     viewer = Viewer()
 
-    while True:
+    while True: # System Loop
         frame = await viewer.captureFrame()
 
         if frame is not None:
@@ -68,6 +74,8 @@ async def main() -> None:
                 logging.info("No cat detected.")
         else:
             logging.warning("Frame capture failed.")
+        
+        time.sleep(3) # Sleep so frame capture isn't spamming. 
 
 
 def runSerialController():
