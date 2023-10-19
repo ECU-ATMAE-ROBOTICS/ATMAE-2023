@@ -4,27 +4,29 @@
 /** Stepper Constants  **/
 const byte STEP_DELAY = 1; // The delay between steps
 
-Pulley::Pulley(const byte stepper_dir_pin, const byte stepper_step_pin, const byte limit_switch_pin_pos, const byte limit_switch_pin_neg)
+Pulley::Pulley(const byte stepperDirPin, const byte stepperStepPin, const byte limitSwitchPinPos, const byte limitSwitchPinNeg)
 {
-  this->stepper_step_pin = stepper_step_pin;
-  this->stepper_dir_pin = stepper_dir_pin;
+  this->stepperStepPin = stepperStepPin;
+  this->stepperDirPin = stepperDirPin;
+  this->limitSwitchPinPos = limitSwitchPinPos;
+  this->limitSwitchPinNeg = limitSwitchPinNeg;
 }
 
 bool Pulley::moveClockwise(const unsigned int steps)
 {
-  digitalWrite(this->stepper_dir_pin, HIGH);
+  digitalWrite(this->stepperDirPin, HIGH);
   return this->move(steps);
 }
 
 bool Pulley::moveCounterClockwise(const unsigned int steps)
 {
-  digitalWrite(this->stepper_dir_pin, LOW);
+  digitalWrite(this->stepperDirPin, LOW);
   return this->move(steps);
 }
 
 bool Pulley::isEdge()
 {
-  return digitalRead(this->limit_switch_pin);
+  return (digitalRead(this->limitSwitchPinPos) || digitalRead(this->limitSwitchPinNeg));
 }
 
 bool Pulley::move(const unsigned int steps)
@@ -41,9 +43,9 @@ bool Pulley::move(const unsigned int steps)
 
 bool Pulley::takeStep()
 {
-  digitalWrite(this->stepper_step_pin, HIGH);
+  digitalWrite(this->stepperStepPin, HIGH);
   delay(STEP_DELAY);
-  digitalWrite(this->stepper_step_pin, LOW);
+  digitalWrite(this->stepperStepPin, LOW);
   delay(STEP_DELAY);
 
   // TODO Fix limit switch to enable this

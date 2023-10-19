@@ -4,42 +4,41 @@
 #include "PatchyUtil.h"
 #include "Gripper.h"
 
-/**
- * Call order:
- *   receiveInstruction -> interpretInstruction -> sendStatus || executeInstruction -> sendStatus
- *
- *   Input is received, this is an "Instruction". That instruction is parsed in receiveInstruction, and intepreted in interpretInstruction. Interpreting
- *   the input deduces Direction and Axis. If the Direction determined is invalid, sendStatus responds with an Invalid Status. Otherwise, the input is executed by
- *   executeInstruction, which sendStatus then responds with a Status of completion.
- */
-
 /** Pulley Constants **/
-const int X_AXIS_DIR_PIN = 6;
-const int X_AXIS_STEP_PIN = 7;
-const int X_AXIS_LS_POS_PIN = 10;
-const int X_AXIS_LS_NEG_PIN = 0;
+const byte X_AXIS_DIR_PIN = 6;
+const byte X_AXIS_STEP_PIN = 7;
+const byte X_AXIS_LS_POS_PIN = 10;
+const byte X_AXIS_LS_NEG_PIN = 0;
 
-const int Y_AXIS_DIR_PIN = 0;
-const int Y_AXIS_STEP_PIN = 0;
-const int Y_AXIS_LS_POS_PIN = 0;
-const int Y_AXIS_LS_NEG_PIN = 0;
+const byte Y_AXIS_DIR_PIN = 0;
+const byte Y_AXIS_STEP_PIN = 0;
+const byte Y_AXIS_LS_POS_PIN = 0;
+const byte Y_AXIS_LS_NEG_PIN = 0;
 
 const int STEPS = 250;
+const int RESET_STEPS_X = 100;
+const int RESET_STEPS_Y = 100;
 
 /** Gripper Constants **/
-const int SERVO_PIN = 0;
-const int LIN_ACT_PIN1 = 0;
-const int LIN_ACT_PIN2 = 0;
-
-const 
+const byte SERVO_PIN = 0;
+const byte LIN_ACT_PIN1 = 0;
+const byte LIN_ACT_PIN2 = 0;
+const byte TRIG_PIN = 0;
+const byte ECHO_PIN = 0;
+const int MAX_DOWN_DELAY = 100;
+const int MAX_UP_DELAY = 100;
+const int ACTION_DELAY = 1000;
 
 /** Parsing Variables **/
-bool instructionRecieved = false;
+bool instructionReceived = false;
 String receivedData = "";
 
 /** Pulleys **/
 Pulley *xAxis;
 Pulley *yAxis;
+
+/** Gripper **/
+Gripper *gripper;
 
 //** Logger **/
 Logger *logger;
@@ -58,6 +57,10 @@ void setup()
   xAxis = new Pulley(X_AXIS_DIR_PIN, X_AXIS_STEP_PIN, X_AXIS_LS_POS_PIN, X_AXIS_LS_NEG_PIN);
   yAxis = new Pulley(Y_AXIS_DIR_PIN, Y_AXIS_STEP_PIN, Y_AXIS_LS_POS_PIN, Y_AXIS_LS_NEG_PIN);
 
+  // Initialize Gripper
+  gripper = new Gripper(SERVO_PIN, LIN_ACT_PIN1, LIN_ACT_PIN2, TRIG_PIN, ECHO_PIN);
+
+
   // Log the initialization
   logger->logMessage(INFO, "Setup completed\n");
 }
@@ -72,13 +75,13 @@ void receiveInstruction(int howMany)
   while (Wire.available())
   {
     char character = Wire.read();
-    if (character == '<' && (!instructionRecieved))
+    if (character == '<' && (!instructionReceived))
     {
       STATUS = PatchyUtil::Status::Unset;
-      instructionRecieved = true;
+      instructionReceived = true;
       receivedData = "";
     }
-    else if (character == '>' && (instructionRecieved))
+    else if (character == '>' && (instructionReceived))
     {
       logger->logMessage(INFO, "Instruction Recieved");
 
@@ -86,9 +89,9 @@ void receiveInstruction(int howMany)
       logger->logMessage(INFO, receivedData + " -> " + hashedData);
 
       interpretInstruction(hashedData);
-      instructionRecieved = false;
+      instructionReceived = false;
     }
-    else if (instructionRecieved)
+    else if (instructionReceived)
     {
       receivedData += character;
     }
@@ -98,14 +101,21 @@ void receiveInstruction(int howMany)
 /** TODO: Add some kind of input validation so these static_cast don't cause undefined behavior? **/
 void interpretInstruction(const long input)
 {
-  PatchyUtil::Axis axis;
-  PatchyUtil::Direction direction = static_cast<PatchyUtil::Direction>(input);
 
-  if (direction == PatchyUtil::Direction::Up || direction == PatchyUtil::Direction::Down)
+  PatchyUtil::Axis axis;
+  PatchyUtil::Instruction instructionInput = static_cast<PatchyUtil::Instruction>(input);
+
+  if (instructionInput  == PatchyUtil::Instruction::Grip) 
+  {
+    executeGripInstruction();
+    return;
+  }
+
+  if (instructionInput == PatchyUtil::Instruction::Up || instructionInput == PatchyUtil::Instruction::Down)
   {
     axis = PatchyUtil::Axis::Y;
   }
-  else if (direction == PatchyUtil::Direction::Left || direction == PatchyUtil::Direction::Right)
+  else if (instructionInput == PatchyUtil::Instruction::Left || instructionInput == PatchyUtil::Instruction::Right)
   {
     axis = PatchyUtil::Axis::X;
   }
@@ -114,30 +124,30 @@ void interpretInstruction(const long input)
     sendStatus(PatchyUtil::Status::Invalid);
     return;
   }
-  executeInstruction(axis, direction);
+  executeMovementInstruction(axis, instructionInput);
 }
 
-void executeInstruction(PatchyUtil::Axis axis, PatchyUtil::Direction direction)
+void executeMovementInstruction(PatchyUtil::Axis axis, PatchyUtil::Instruction instructionInput)
 {
   PatchyUtil::Status outcome;
   switch (axis)
   {
   case PatchyUtil::Axis::X:
-    if (direction == PatchyUtil::Direction::Left)
+    if (instructionInput == PatchyUtil::Instruction::Left)
     {
       outcome = static_cast<PatchyUtil::Status>(xAxis->moveCounterClockwise(STEPS));
     }
-    else if (direction == PatchyUtil::Direction::Right)
+    else if (instructionInput == PatchyUtil::Instruction::Right)
     {
       outcome = static_cast<PatchyUtil::Status>(xAxis->moveClockwise(STEPS));
     }
     break;
   case PatchyUtil::Axis::Y:
-    if (direction == PatchyUtil::Direction::Down)
+    if (instructionInput == PatchyUtil::Instruction::Down)
     {
       outcome = static_cast<PatchyUtil::Status>(yAxis->moveCounterClockwise(STEPS));
     }
-    else if (direction == PatchyUtil::Direction::Up)
+    else if (instructionInput == PatchyUtil::Instruction::Up)
     {
       outcome = static_cast<PatchyUtil::Status>(yAxis->moveClockwise(STEPS));
     }
@@ -148,6 +158,48 @@ void executeInstruction(PatchyUtil::Axis axis, PatchyUtil::Direction direction)
   }
 
   sendStatus(outcome);
+}
+
+void executeGripInstruction() 
+{
+  gripper->open();
+  delay(ACTION_DELAY);
+  gripper->down();
+  delay(ACTION_DELAY);
+  gripper->close();
+  delay(ACTION_DELAY);
+  gripper->up(MAX_UP_DELAY);
+  delay(ACTION_DELAY);
+
+  dropOff();
+
+  sendStatus(PatchyUtil::Status::Success);
+}
+
+void dropOff()
+{
+  bool corner1 = false;
+  bool corner2 = false;
+
+  while (!corner1 && !corner2)
+  {
+    corner1 = xAxis->moveClockwise(STEPS);
+    corner2 = yAxis->moveClockwise(STEPS);
+  }
+
+  gripper->down(MAX_DOWN_DELAY);
+  delay(ACTION_DELAY);
+  gripper->open();
+  delay(ACTION_DELAY);
+  gripper->up(MAX_UP_DELAY);
+
+  resetPosition();
+}
+
+void resetPosition()
+{
+  yAxis->moveCounterClockwise(RESET_STEPS_Y);
+  xAxis->moveCounterClockwise(RESET_STEPS_X);
 }
 
 void sendStatus(const PatchyUtil::Status status)
