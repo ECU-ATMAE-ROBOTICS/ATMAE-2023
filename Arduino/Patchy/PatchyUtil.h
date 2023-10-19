@@ -16,12 +16,13 @@ public:
     /**
      * Enum defining different directions as hashes.
      */
-    enum class Direction : long
+    enum class Instruction : long
     {
         Up = 5863882,
         Down = 2090192221,
         Left = 2090468272,
         Right = 273236323,
+        Grip = 0
     };
 
     /**

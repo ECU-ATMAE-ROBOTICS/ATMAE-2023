@@ -10,12 +10,12 @@ public:
     /**
      * @brief Constructor for the Pulley class.
      *
-     * @param stepper_dir_pin The pin for controlling the stepper motor direction.
-     * @param stepper_step_pin The pin for generating step pulses to the stepper motor.
-     * @param limit_switch_pin_pos The positive limit switch pin for detecting the limit position.
-     * @param limit_switch_pin_neg The negative limit switch pin for detecting the limit position.
+     * @param stepperDirPin The pin for controlling the stepper motor direction.
+     * @param stepperStepPin The pin for generating step pulses to the stepper motor.
+     * @param limitSwitchPinPos The positive limit switch pin for detecting the limit position.
+     * @param limitSwitchPinNeg The negative limit switch pin for detecting the limit position.
      */
-    Pulley(const byte stepper_dir_pin, const byte stepper_step_pin, const byte limit_switch_pin_pos, const byte limit_switch_pin_neg);
+    Pulley(const byte stepperDirPin, const byte stepperStepPin, const byte limitSwitchPinPos, const byte limitSwitchPinNeg);
 
     /**
      * @brief Move the pulley in the counterclockwise direction for a specified number of steps.
@@ -34,9 +34,10 @@ public:
     bool moveClockwise(const unsigned int steps);
 
 private:
-    byte stepper_step_pin; // Pin for generating step pulses
-    byte stepper_dir_pin;  // Pin for controlling direction
-    byte limit_switch_pin; // Limit switch pin
+    byte stepperStepPin; // Pin for generating step pulses
+    byte stepperDirPin;  // Pin for controlling direction
+    byte limitSwitchPinPos;
+    byte limitSwitchPinNeg;
 
     /**
      * @brief Check if the pulley is at the limit position.

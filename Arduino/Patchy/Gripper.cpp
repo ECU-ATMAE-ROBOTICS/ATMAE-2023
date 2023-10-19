@@ -1,39 +1,61 @@
-#include <Servo.h>
 #include "Gripper.h"
-
-const byte GRIP_DELAY = 15; //delay between switching directions
 
 const byte OPEN_ANGLE = 0;
 const byte CLOSE_ANGLE = 180;
-const byte UP_ANGLE = 0;
-const byte DOWN_ANGLE = 180;
-const byte FLOOR_DROP = 180
+const long PICKUP_DISTANCE = 100;
 
-Gripper::Gripper(const byte servo_pin, const byte linAct_pin)
+Gripper::Gripper(const byte servoPin, const byte linActPin1, const byte linActPin2, const byte trigPin, const byte echoPin)
 {
-  this->servo_pin = servo_pin;
+  this->servoPin = servoPin;
+  this->linActPin1 = linActPin1;
+  this->linActPin2 = linActPin2;
+
+  this->gripperServo = new Servo();
+  this->gripperServo->attach(servoPin);
+
+  this->distanceSensor = new HCSR04(trigPin, echoPin);
 }
 
-bool Gripper::open()
+void Gripper::open()
 {
-  digitalWrite(this->servo_pin, LOW);
-  return this->move(OPEN_ANGLE);
+  digitalWrite(this->servoPin, LOW);
+  this->move(OPEN_ANGLE);
 }
 
-bool Gripper::close()
+void Gripper::close()
 {
-  digitalWrite(this->servo_pin, HIGH);
-  return this->move(CLOSE_ANGLE);
+  digitalWrite(this->servoPin, HIGH);
+  this->move(CLOSE_ANGLE);
 }
 
-bool Gripper::up()
+void Gripper::up(const byte delayTime)
 {
-  digitalWrite(this->linAct_pin, LOW);
-  return this->move(UP_ANGLE);
+  digitalWrite(this->linActPin1, LOW);
+  digitalWrite(this->linActPin2, HIGH);
+  delay(delayTime);
+  digitalWrite(this->linActPin1, HIGH);
+  digitalWrite(this->linActPin2, HIGH);
 }
 
-bool Gripper::down()
+void Gripper::down(const byte delayTime)
 {
-  digitalWrite(this->linAct_pin, HIGH);
-  return this->move(DOWN_ANGLE);
+  digitalWrite(this->linActPin1, HIGH);
+  digitalWrite(this->linActPin2, LOW);
+  delay(delayTime);
+  digitalWrite(this->linActPin1, HIGH);
+  digitalWrite(this->linActPin2, HIGH);
+}
+
+void Gripper::down() 
+{
+  digitalWrite(this->linActPin1, HIGH);
+  digitalWrite(this->linActPin2, LOW);
+  while (this->distanceSensor->getDistance() > PICKUP_DISTANCE) {}
+  digitalWrite(this->linActPin1, HIGH);
+  digitalWrite(this->linActPin2, HIGH);
+}
+
+void Gripper::move(const byte angle)
+{
+  this->gripperServo->write(angle);
 }
