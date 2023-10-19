@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from typing import Optional
 from CommunicatorCommon.SerialCommunicator import SerialCommunicator
 
@@ -28,7 +27,6 @@ class SerialController:
         while True:
             receivedMessage = await self.serialCommunicator.receiveMessage(timeout)
             if receivedMessage:
-                logging.info(f"Received message: {receivedMessage}")
                 print(receivedMessage, end='')
 
     def close(self) -> None:
