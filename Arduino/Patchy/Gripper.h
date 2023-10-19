@@ -13,7 +13,7 @@
 class Gripper 
 {
 public:
-  
+
   Servo *gripperServo; // Servo controlling the gripper arm
   HCSR04 *distanceSensor; // Distance sensor
 
