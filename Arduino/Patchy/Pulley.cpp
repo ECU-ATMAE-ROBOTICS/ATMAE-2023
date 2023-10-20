@@ -10,6 +10,11 @@ Pulley::Pulley(const byte stepperDirPin, const byte stepperStepPin, const byte l
   this->stepperDirPin = stepperDirPin;
   this->limitSwitchPinPos = limitSwitchPinPos;
   this->limitSwitchPinNeg = limitSwitchPinNeg;
+
+  pinMode(this->stepperStepPin, OUTPUT);
+  pinMode(this->stepperDirPin, OUTPUT);
+  pinMode(this->limitSwitchPinPos, INPUT);
+  pinMode(this->limitSwitchPinNeg, INPUT);
 }
 
 bool Pulley::moveClockwise(const unsigned int steps)

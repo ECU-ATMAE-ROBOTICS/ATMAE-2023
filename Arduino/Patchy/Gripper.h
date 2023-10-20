@@ -23,10 +23,10 @@ public:
    * @param servoPin The pin for controlling the servo.
    * @param linActPin1 The pin for controlling the Linear Actuator.
    * @param linActPin2 The pin for controlling the Linear Actuator.
-   * @param trigPin The trigger pin for the ultrasonic distance sensor.
-   * @param echoPin The echo pin for the ultrasonic distance sensor.
+   * @param enPin
+   * @param hscr04
    */
-  Gripper(const byte servoPin, const byte linActPin1, const byte linActPin2, const byte trigPin, const byte echoPin);
+  Gripper(const byte servoPin, const byte linActPin1, const byte linActPin2, const byte enPin, const HCSR04 *hscr04);
 
   /**
    * @brief Move the gripper into an open state.
@@ -74,6 +74,7 @@ private:
   byte servoPin; // Pin for controlling the servo.
   byte linActPin1; // Pin for controlling the linear actuator.
   byte linActPin2; // Pin for controlling the linear actuator.
+  byte enPin;
 };
 
 #endif

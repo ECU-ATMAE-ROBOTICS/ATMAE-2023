@@ -3,17 +3,24 @@
 const byte OPEN_ANGLE = 0;
 const byte CLOSE_ANGLE = 180;
 const long PICKUP_DISTANCE = 100;
+const byte ACTUATOR_SPEED = 127;
 
-Gripper::Gripper(const byte servoPin, const byte linActPin1, const byte linActPin2, const byte trigPin, const byte echoPin)
+Gripper::Gripper(const byte servoPin, const byte linActPin1, const byte linActPin2, const byte enPin, const HCSR04 *distanceSensor)
 {
   this->servoPin = servoPin;
   this->linActPin1 = linActPin1;
   this->linActPin2 = linActPin2;
+  this->enPin = enPin;
+
+  pinMode(this->linActPin1, OUTPUT);
+  pinMode(this->linActPin2, OUTPUT);
 
   this->gripperServo = new Servo();
   this->gripperServo->attach(servoPin);
 
-  this->distanceSensor = new HCSR04(trigPin, echoPin);
+  digitalWrite(this->enPin, ACTUATOR_SPEED);
+
+  this->distanceSensor = distanceSensor;
 }
 
 void Gripper::open()

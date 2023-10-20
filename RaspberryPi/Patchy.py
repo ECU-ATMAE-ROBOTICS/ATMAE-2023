@@ -11,6 +11,7 @@ import asyncio
 import logging
 import threading
 import time
+import RPi.GPIO as GPIO
 
 # Third-Party
 import cv2
@@ -48,6 +49,13 @@ async def handleDirection(i2cController, direction):
         await processInstruction(i2cController, direction)
 
 
+def checkStop(RUN):
+    if RUN:
+        return GPIO.input(39) == GPIO.LOW
+    else:
+        return False
+    
+
 async def main(showFrame: bool=False) -> None:
     """
     Main coroutine to continuously capture frames and search for cats.
@@ -60,29 +68,41 @@ async def main(showFrame: bool=False) -> None:
 
     viewer = Viewer()
 
-    while True: # System Loop
-        frame = await viewer.captureFrame()
-        direction, corners = visionController.processFrame(frame)
-        
-        if frame is not None:
+    RUN = True
 
-            if showFrame:
-                if corners is not None and len(corners) == 4:
-                    cv2.rectangle(frame, corners[0], corners[2], (255, 0, 0), 2)
-                cv2.imshow("frame", frame)
-                cv2.waitKey(1)
-            
-            
+    while True:  # GPIO loop
+        if GPIO.input(41) == GPIO.HIGH:  
+            RUN = True
 
-            if direction:
-                await handleDirection(i2cController, direction)
-            else:
-                logging.info("No color detected.")
-        else:
-            logging.warning("Frame capture failed.")
-            
-        print()
-        time.sleep(1) # Sleep so frame capture isn't spamming. 
+            while RUN: # System Loop
+                frame = await viewer.captureFrame()
+                direction, corners = visionController.processFrame(frame)
+
+                RUN = checkStop()
+                if frame is not None:
+
+                    if showFrame:
+                        if corners is not None and len(corners) == 4:
+                            cv2.rectangle(frame, corners[0], corners[2], (255, 0, 0), 2)
+                        cv2.imshow("frame", frame)
+                        cv2.waitKey(1)
+                    
+                    if direction:
+                        await handleDirection(i2cController, direction)
+                    else:
+                        logging.info("No color detected.")
+
+                    RUN = checkStop()
+                else:
+                    logging.warning("Frame capture failed.")
+                    
+                print()
+                time.sleep(1) # Sleep so frame capture isn't spamming. 
+                RUN = checkStop()
+                
+
+
+
 
 
 def runSerialController():
@@ -96,6 +116,11 @@ def runSerialController():
         controller.close()
 
 if __name__ == "__main__":
+
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(41, GPIO.IN)
+    GPIO.setup(39, GPIO.IN)
+
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     logger = logging.getLogger()
 
