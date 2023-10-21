@@ -1,7 +1,7 @@
 #include "Gripper.h"
 
-const int OPEN_DURATION = 1000;
-const int CLOSE_DURATION = 2000;
+const int OPEN_DURATION = 500;
+const int CLOSE_DURATION = 2500;
 const long PICKUP_DISTANCE = 100;
 const byte ACTUATOR_SPEED = 127;
 
