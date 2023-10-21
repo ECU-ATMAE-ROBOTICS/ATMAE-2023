@@ -1,7 +1,7 @@
 #include "Gripper.h"
 
-const byte OPEN_ANGLE = 0;
-const byte CLOSE_ANGLE = 180;
+const int OPEN_DURATION = 1000;
+const int CLOSE_DURATION = 2000;
 const long PICKUP_DISTANCE = 100;
 
 Gripper::Gripper(const byte servoPin, const byte linActPin1, const byte linActPin2, const byte trigPin, const byte echoPin)
@@ -19,13 +19,13 @@ Gripper::Gripper(const byte servoPin, const byte linActPin1, const byte linActPi
 void Gripper::open()
 {
   digitalWrite(this->servoPin, LOW);
-  this->move(OPEN_ANGLE);
+  this->move(OPEN_DURATION);
 }
 
 void Gripper::close()
 {
   digitalWrite(this->servoPin, HIGH);
-  this->move(CLOSE_ANGLE);
+  this->move(CLOSE_DURATION);
 }
 
 void Gripper::up(const byte delayTime)
@@ -55,7 +55,6 @@ void Gripper::down()
   digitalWrite(this->linActPin2, HIGH);
 }
 
-void Gripper::move(const byte angle)
-{
-  this->gripperServo->write(angle);
+void Gripper::move(const int duration) {
+  this->gripperServo->writeMicroseconds(duration);
 }
