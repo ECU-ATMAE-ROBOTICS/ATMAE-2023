@@ -64,13 +64,6 @@ public:
   void down();
 
 private:
-  /**
-   * @brief Move the servo to a specified angle.
-   *
-   * @param duration 1000ms to close, 2000ms to open
-   */
-  void move(const int duration);
-
   byte servoPin; // Pin for controlling the servo.
   byte linActPin1; // Pin for controlling the linear actuator.
   byte linActPin2; // Pin for controlling the linear actuator.

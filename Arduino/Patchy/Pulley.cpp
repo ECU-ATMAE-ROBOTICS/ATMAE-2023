@@ -20,25 +20,32 @@ Pulley::Pulley(const byte stepperDirPin, const byte stepperStepPin, const byte l
 bool Pulley::moveClockwise(const unsigned int steps)
 {
   digitalWrite(this->stepperDirPin, HIGH);
-  return this->move(steps);
+  return this->move(steps, true);
 }
 
 bool Pulley::moveCounterClockwise(const unsigned int steps)
 {
   digitalWrite(this->stepperDirPin, LOW);
-  return this->move(steps);
+  return this->move(steps, false);
 }
 
-bool Pulley::isEdge()
+bool Pulley::isEdge(bool isPositive)
 {
-  return (digitalRead(this->limitSwitchPinPos) || digitalRead(this->limitSwitchPinNeg));
+  if (isPositive) 
+  {
+    return !(digitalRead(this->limitSwitchPinPos));
+  }
+  else 
+  {
+    return !(digitalRead(this->limitSwitchPinNeg));
+  }
 }
 
-bool Pulley::move(const unsigned int steps)
+bool Pulley::move(const unsigned int steps, bool isPositive)
 {
   for (int i = 0; i < abs(steps); i++)
   {
-    if (!this->takeStep())
+    if (!this->takeStep(isPositive))
     {
       return false;
     }
@@ -46,14 +53,13 @@ bool Pulley::move(const unsigned int steps)
   return true;
 }
 
-bool Pulley::takeStep()
+bool Pulley::takeStep(bool isPositive)
 {
   digitalWrite(this->stepperStepPin, HIGH);
   delay(STEP_DELAY);
   digitalWrite(this->stepperStepPin, LOW);
   delay(STEP_DELAY);
 
-  // TODO Fix limit switch to enable this
-  // return this->isEdge();
+  return this->isEdge(isPositive);
   return true;
 }

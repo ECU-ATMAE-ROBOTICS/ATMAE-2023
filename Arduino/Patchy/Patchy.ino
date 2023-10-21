@@ -1,7 +1,19 @@
 #include <Wire.h>
 #include "Logger.h"
-#include "Pulley.h"a
-const byte Y_AXIS_LS_NEG_PIN = 31;
+#include "Pulley.h"
+#include "PatchyUtil.h"
+#include "Gripper.h"
+
+/** Pulley Constants **/
+const byte X_AXIS_DIR_PIN = 3;
+const byte X_AXIS_STEP_PIN = 2;
+const byte X_AXIS_LS_POS_PIN = 37;
+const byte X_AXIS_LS_NEG_PIN = 39;
+
+const byte Y_AXIS_DIR_PIN = 5;
+const byte Y_AXIS_STEP_PIN = 4;
+const byte Y_AXIS_LS_POS_PIN = 35;
+const byte Y_AXIS_LS_NEG_PIN = 41;
 
 const int STEPS = 250;
 
@@ -10,7 +22,7 @@ const int RESET_STEPS_X = 750; // Half the length of X in steps
 const int RESET_STEPS_Y = 750; // Half the length of Y in steps
 
 /** Gripper Constants **/
-const byte SERVO_PIN = 1;
+const byte SERVO_PIN = 10;
 const byte LIN_ACT_PIN1 = 7;
 const byte LIN_ACT_PIN2 = 8;
 const byte EN_PIN = 6;
@@ -22,7 +34,7 @@ const byte ECHO_PIN = 45;
 // In ms
 const int MAX_DOWN_DELAY = 250;
 const int MAX_UP_DELAY = 250;
-const int ACTION_DELAY = 1000;
+const int ACTION_DELAY = 2000;
 
 /** Parsing Variables **/
 bool instructionReceived = false;
@@ -101,13 +113,15 @@ void receiveInstruction(int howMany)
 /** TODO: Add some kind of input validation so these static_cast don't cause undefined behavior? **/
 void interpretInstruction(const long input)
 {
+  logger->logMessage(INFO, "Intepreting Instruction");
 
   PatchyUtil::Axis axis;
   PatchyUtil::Instruction instructionInput = static_cast<PatchyUtil::Instruction>(input);
 
-  if (instructionInput  == PatchyUtil::Instruction::Grip) 
+  if (instructionInput  == PatchyUtil::Instruction::Grab) 
   {
-    executeGripInstruction();
+    logger->logMessage(DEBUG, "instructionInput Check Success");
+    executeGrabInstruction();
     return;
   }
 
@@ -129,6 +143,8 @@ void interpretInstruction(const long input)
 
 void executeMovementInstruction(PatchyUtil::Axis axis, PatchyUtil::Instruction instructionInput)
 {
+  logger->logMessage(INFO, "Starting Move Instruction");
+
   PatchyUtil::Status outcome;
   switch (axis)
   {
@@ -160,17 +176,18 @@ void executeMovementInstruction(PatchyUtil::Axis axis, PatchyUtil::Instruction i
   sendStatus(outcome);
 }
 
-void executeGripInstruction() 
+void executeGrabInstruction() 
 {
+  logger->logMessage(INFO, "Starting Grab Instruction");
+
   gripper->open();
   delay(ACTION_DELAY);
-  gripper->down();
+  gripper->down(MAX_DOWN_DELAY);
   delay(ACTION_DELAY);
   gripper->close();
   delay(ACTION_DELAY);
   gripper->up(MAX_UP_DELAY);
   delay(ACTION_DELAY);
-
   dropOff();
 
   sendStatus(PatchyUtil::Status::Success);
@@ -178,15 +195,23 @@ void executeGripInstruction()
 
 void dropOff()
 {
-  bool corner1 = false;
-  bool corner2 = false;
+  logger->logMessage(INFO, "Starting Dropoff Procedure");
+  bool notCornerX = true;
+  bool notCornerY = true;
 
-  while (!corner1 && !corner2)
+  while (notCornerX || notCornerY)
   {
-    corner1 = xAxis->moveClockwise(STEPS);
-    corner2 = yAxis->moveClockwise(STEPS);
+    if (notCornerX) 
+    {
+      notCornerX = xAxis->moveClockwise(STEPS);
+    }
+    if (notCornerY) 
+    {
+      notCornerY = yAxis->moveClockwise(STEPS);
+    }
   }
 
+  logger->logMessage(DEBUG, "Dropping Box");
   gripper->down(MAX_DOWN_DELAY);
   delay(ACTION_DELAY);
   gripper->open();
@@ -197,7 +222,8 @@ void dropOff()
 }
 
 void resetPosition()
-{
+{ 
+  logger->logMessage(INFO, "Resetting Position");
   yAxis->moveCounterClockwise(RESET_STEPS_Y);
   xAxis->moveCounterClockwise(RESET_STEPS_X);
 }

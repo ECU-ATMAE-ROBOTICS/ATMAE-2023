@@ -18,6 +18,9 @@ void Logger::logMessage(const LogLevel level, const String &message)
     case ERROR:
         Serial.print("[ERROR] ");
         break;
+    case DEBUG:
+        Serial.print("[DEBUG] ");
+        break;
     }
     Serial.println(message);
 }

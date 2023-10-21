@@ -1,7 +1,7 @@
 #include "Gripper.h"
 
-const int OPEN_DURATION = 500;
-const int CLOSE_DURATION = 2500;
+const int OPEN_DURATION = 2000;
+const int CLOSE_DURATION = 1000;
 const long PICKUP_DISTANCE = 100;
 const byte ACTUATOR_SPEED = 127;
 
@@ -25,14 +25,12 @@ Gripper::Gripper(const byte servoPin, const byte linActPin1, const byte linActPi
 
 void Gripper::open()
 {
-  digitalWrite(this->servoPin, LOW);
-  this->move(OPEN_DURATION);
+  this->gripperServo->writeMicroseconds(OPEN_DURATION);
 }
 
 void Gripper::close()
 {
-  digitalWrite(this->servoPin, HIGH);
-  this->move(CLOSE_DURATION);
+  this->gripperServo->writeMicroseconds(CLOSE_DURATION);
 }
 
 void Gripper::up(const byte delayTime)
@@ -60,8 +58,4 @@ void Gripper::down()
   while (this->distanceSensor->getDistance() > PICKUP_DISTANCE) {}
   digitalWrite(this->linActPin1, HIGH);
   digitalWrite(this->linActPin2, HIGH);
-}
-
-void Gripper::move(const int duration) {
-  this->gripperServo->writeMicroseconds(duration);
 }
