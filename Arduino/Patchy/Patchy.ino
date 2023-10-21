@@ -5,37 +5,47 @@
 #include "Gripper.h"
 
 /** Pulley Constants **/
-const byte X_AXIS_DIR_PIN = 6;
-const byte X_AXIS_STEP_PIN = 7;
-const byte X_AXIS_LS_POS_PIN = 10;
-const byte X_AXIS_LS_NEG_PIN = 0;
+const byte X_AXIS_DIR_PIN = 3;
+const byte X_AXIS_STEP_PIN = 2;
+const byte X_AXIS_LS_POS_PIN = 37;
+const byte X_AXIS_LS_NEG_PIN = 35;
 
-const byte Y_AXIS_DIR_PIN = 0;
-const byte Y_AXIS_STEP_PIN = 0;
-const byte Y_AXIS_LS_POS_PIN = 0;
-const byte Y_AXIS_LS_NEG_PIN = 0;
+const byte Y_AXIS_DIR_PIN = 5;
+const byte Y_AXIS_STEP_PIN = 4;
+const byte Y_AXIS_LS_POS_PIN = 33;
+const byte Y_AXIS_LS_NEG_PIN = 31;
 
 const int STEPS = 250;
-const int RESET_STEPS_X = 100;
-const int RESET_STEPS_Y = 100;
+
+// Get to center of Gantry
+const int RESET_STEPS_X = 750; // Half the length of X in steps
+const int RESET_STEPS_Y = 750; // Half the length of Y in steps
 
 /** Gripper Constants **/
-const byte SERVO_PIN = 0;
-const byte LIN_ACT_PIN1 = 0;
-const byte LIN_ACT_PIN2 = 0;
-const byte TRIG_PIN = 0;
-const byte ECHO_PIN = 0;
-const int MAX_DOWN_DELAY = 100;
-const int MAX_UP_DELAY = 100;
+const byte SERVO_PIN = 1;
+const byte LIN_ACT_PIN1 = 7;
+const byte LIN_ACT_PIN2 = 8;
+const byte EN_PIN = 6;
+
+//** HCSR04 Constants
+const byte TRIG_PIN = 47;
+const byte ECHO_PIN = 45;
+
+// In ms
+const int MAX_DOWN_DELAY = 250;
+const int MAX_UP_DELAY = 250;
 const int ACTION_DELAY = 1000;
 
 /** Parsing Variables **/
 bool instructionReceived = false;
-String receivedData = "";
+String receivedData;
 
 /** Pulleys **/
 Pulley *xAxis;
 Pulley *yAxis;
+
+/** HCSR04 **/
+HCSR04 *distanceSensor;
 
 /** Gripper **/
 Gripper *gripper;
@@ -57,9 +67,11 @@ void setup()
   xAxis = new Pulley(X_AXIS_DIR_PIN, X_AXIS_STEP_PIN, X_AXIS_LS_POS_PIN, X_AXIS_LS_NEG_PIN);
   yAxis = new Pulley(Y_AXIS_DIR_PIN, Y_AXIS_STEP_PIN, Y_AXIS_LS_POS_PIN, Y_AXIS_LS_NEG_PIN);
 
-  // Initialize Gripper
-  gripper = new Gripper(SERVO_PIN, LIN_ACT_PIN1, LIN_ACT_PIN2, TRIG_PIN, ECHO_PIN);
+  // Initialize distance sensor
+  distanceSensor = new HCSR04(TRIG_PIN, ECHO_PIN);
 
+  // Initialize Gripper
+  gripper = new Gripper(SERVO_PIN, LIN_ACT_PIN1, LIN_ACT_PIN2, EN_PIN, distanceSensor);
 
   // Log the initialization
   logger->logMessage(INFO, "Setup completed\n");

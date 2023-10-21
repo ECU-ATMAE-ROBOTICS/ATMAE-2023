@@ -4,6 +4,9 @@ HCSR04::HCSR04(const byte trigPin, const byte echoPin)
 {
   this->trigPin = trigPin;
   this->echoPin = echoPin;
+
+  pinMode(this->trigPin, OUTPUT);
+  pinMode(this->echoPin, INPUT);
 }
 
 long HCSR04::getDistance()
