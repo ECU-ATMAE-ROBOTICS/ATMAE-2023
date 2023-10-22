@@ -1,5 +1,3 @@
-#include <Wire.h>
-#include "Logger.h"
 #include "Pulley.h"
 #include "PatchyUtil.h"
 #include "Gripper.h"
@@ -38,7 +36,7 @@ const int ACTION_DELAY = 2000;
 
 /** Parsing Variables **/
 bool instructionReceived = false;
-String receivedData;
+String receivedData = "";
 
 /** Pulleys **/
 Pulley *xAxis;
@@ -50,18 +48,12 @@ HCSR04 *distanceSensor;
 /** Gripper **/
 Gripper *gripper;
 
-//** Logger **/
-Logger *logger;
-
 //** I2C **/
 PatchyUtil::Status STATUS;
 
 void setup()
 {
-  logger = new Logger(9600); // Initialize the Logger with a baud rate of 9600
-  Wire.begin(8);
-  Wire.onReceive(receiveInstruction);
-  Wire.onRequest(requestStatus);
+  Serial.begin(9600);
 
   // Initialize the Pulleys
   xAxis = new Pulley(X_AXIS_DIR_PIN, X_AXIS_STEP_PIN, X_AXIS_LS_POS_PIN, X_AXIS_LS_NEG_PIN);
@@ -72,39 +64,25 @@ void setup()
 
   // Initialize Gripper
   gripper = new Gripper(SERVO_PIN, LIN_ACT_PIN1, LIN_ACT_PIN2, EN_PIN, distanceSensor);
-
-  // Log the initialization
-  logger->logMessage(INFO, "Setup completed\n");
 }
 
 void loop()
 {
-  delay(100);
+  receiveInstruction();
 }
 
-void receiveInstruction(int howMany)
-{
-  while (Wire.available())
-  {
-    char character = Wire.read();
-    if (character == '<' && (!instructionReceived))
-    {
+String receiveInstruction() {
+  while (Serial.available()) {
+    char character = Serial.read();
+    if (character == '<' && (!instructionReceived)) {
       STATUS = PatchyUtil::Status::Unset;
       instructionReceived = true;
       receivedData = "";
-    }
-    else if (character == '>' && (instructionReceived))
-    {
-      logger->logMessage(INFO, "Instruction Recieved");
-
+    } else if (character == '>' && (instructionReceived)) {
       long hashedData = PatchyUtil::hashString(receivedData);
-      logger->logMessage(INFO, receivedData + " -> " + hashedData);
-
       interpretInstruction(hashedData);
       instructionReceived = false;
-    }
-    else if (instructionReceived)
-    {
+    } else if (instructionReceived) {
       receivedData += character;
     }
   }
@@ -113,14 +91,12 @@ void receiveInstruction(int howMany)
 /** TODO: Add some kind of input validation so these static_cast don't cause undefined behavior? **/
 void interpretInstruction(const long input)
 {
-  logger->logMessage(INFO, "Intepreting Instruction");
 
   PatchyUtil::Axis axis;
   PatchyUtil::Instruction instructionInput = static_cast<PatchyUtil::Instruction>(input);
 
   if (instructionInput  == PatchyUtil::Instruction::Grab) 
   {
-    logger->logMessage(DEBUG, "instructionInput Check Success");
     executeGrabInstruction();
     return;
   }
@@ -143,8 +119,6 @@ void interpretInstruction(const long input)
 
 void executeMovementInstruction(PatchyUtil::Axis axis, PatchyUtil::Instruction instructionInput)
 {
-  logger->logMessage(INFO, "Starting Move Instruction");
-
   PatchyUtil::Status outcome;
   switch (axis)
   {
@@ -178,8 +152,6 @@ void executeMovementInstruction(PatchyUtil::Axis axis, PatchyUtil::Instruction i
 
 void executeGrabInstruction() 
 {
-  logger->logMessage(INFO, "Starting Grab Instruction");
-
   gripper->open();
   delay(ACTION_DELAY);
   gripper->down(MAX_DOWN_DELAY);
@@ -195,7 +167,6 @@ void executeGrabInstruction()
 
 void dropOff()
 {
-  logger->logMessage(INFO, "Starting Dropoff Procedure");
   bool notCornerX = true;
   bool notCornerY = true;
 
@@ -211,7 +182,6 @@ void dropOff()
     }
   }
 
-  logger->logMessage(DEBUG, "Dropping Box");
   gripper->down(MAX_DOWN_DELAY);
   delay(ACTION_DELAY);
   gripper->open();
@@ -223,7 +193,6 @@ void dropOff()
 
 void resetPosition()
 { 
-  logger->logMessage(INFO, "Resetting Position");
   yAxis->moveCounterClockwise(RESET_STEPS_Y);
   xAxis->moveCounterClockwise(RESET_STEPS_X);
 }
@@ -231,33 +200,5 @@ void resetPosition()
 void sendStatus(const PatchyUtil::Status status)
 { 
   STATUS = status;
-  
-  // Log the status
-  if (status == PatchyUtil::Status::Success)
-  {
-    logger->logMessage(INFO, "Action successful");
-  }
-  else if (status == PatchyUtil::Status::Failure)
-  {
-    logger->logMessage(WARNING, "Action failed");
-  }
-  else
-  {
-    logger->logMessage(WARNING, "Invalid input received");
-  }
-
-  logger->logMessage(INFO, "Instruction Completed");
-}
-
-void requestStatus()
-{
-  // Send the status over the wire
-  logger->logMessage(INFO,"Request for status");
-  while (STATUS == PatchyUtil::Status::Unset)
-  {
-    logger->logMessage(INFO,"Status is currently Unset");
-  }
-  logger->logMessage(INFO, "Status: " + String(static_cast<int>(STATUS)));
-  Wire.write(static_cast<int>(STATUS));
-  logger->newLine();
+  Serial.println(static_cast<int>(status));
 }
