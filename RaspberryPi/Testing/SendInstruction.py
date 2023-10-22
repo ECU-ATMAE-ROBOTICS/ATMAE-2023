@@ -9,8 +9,9 @@ async def main():
             message = input("Enter a message to send: ")
             await serial_communicator.sendMessage(message)
 
-            response = await serial_communicator.receiveMessage()
-            print(f"Received: {response}")
+            while True:
+                response = await serial_communicator.receiveMessage()
+                print(f"Received: {response}")
 
         except KeyboardInterrupt:
             serial_communicator.close()
