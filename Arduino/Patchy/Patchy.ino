@@ -14,6 +14,7 @@ const byte Y_AXIS_LS_POS_PIN = 35;
 const byte Y_AXIS_LS_NEG_PIN = 41;
 
 const int STEPS = 2;
+const int STEPS_MANUAL = 100;
 
 // Get to center of Gantry
 const int RESET_STEPS_X = 525; // Half the length of X in steps
@@ -90,6 +91,7 @@ void receiveInstruction() {
       receivedData = "";
     } else if (character == '>' && (instructionReceived)) {
       long hashedData = PatchyUtil::hashString(receivedData);
+      // Serial.print(hashedData);
       interpretInstruction(hashedData);
       instructionReceived = false;
     } else if (instructionReceived) {
@@ -131,6 +133,15 @@ void interpretInstruction(const long input) {
     return;
   }
 
+  if (instructionInput == PatchyUtil::Instruction::Reset) 
+  {
+    gripper->open();
+    gripper->up(MAX_UP_DELAY);
+    findCorner();
+    resetPosition();
+    return;
+  }
+
   if (instructionInput == PatchyUtil::Instruction::Up || instructionInput == PatchyUtil::Instruction::Down)
   {
     axis = PatchyUtil::Axis::Y;
@@ -154,21 +165,21 @@ void executeMovementInstruction(PatchyUtil::Axis axis, PatchyUtil::Instruction i
   case PatchyUtil::Axis::X:
     if (instructionInput == PatchyUtil::Instruction::Left)
     {
-      outcome = static_cast<PatchyUtil::Status>(xAxis->moveCounterClockwise(STEPS));
+      outcome = static_cast<PatchyUtil::Status>(xAxis->moveCounterClockwise(STEPS_MANUAL));
     }
     else if (instructionInput == PatchyUtil::Instruction::Right)
     {
-      outcome = static_cast<PatchyUtil::Status>(xAxis->moveClockwise(STEPS));
+      outcome = static_cast<PatchyUtil::Status>(xAxis->moveClockwise(STEPS_MANUAL));
     }
     break;
   case PatchyUtil::Axis::Y:
     if (instructionInput == PatchyUtil::Instruction::Down)
     {
-      outcome = static_cast<PatchyUtil::Status>(yAxis->moveCounterClockwise(STEPS));
+      outcome = static_cast<PatchyUtil::Status>(yAxis->moveCounterClockwise(STEPS_MANUAL));
     }
     else if (instructionInput == PatchyUtil::Instruction::Up)
     {
-      outcome = static_cast<PatchyUtil::Status>(yAxis->moveClockwise(STEPS));
+      outcome = static_cast<PatchyUtil::Status>(yAxis->moveClockwise(STEPS_MANUAL));
     }
     break;
   default:
