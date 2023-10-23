@@ -47,6 +47,7 @@ bool Pulley::move(const unsigned int steps, bool isPositive)
   {
     if (!this->takeStep(isPositive))
     {
+      delay(5);
       return false;
     }
   }
