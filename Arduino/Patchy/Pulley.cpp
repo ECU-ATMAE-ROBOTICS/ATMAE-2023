@@ -31,11 +31,11 @@ bool Pulley::moveCounterClockwise(const unsigned int steps)
 
 bool Pulley::isEdge(bool isPositive)
 {
-  if (isPositive) 
+  if (isPositive)
   {
     return !(digitalRead(this->limitSwitchPinPos));
   }
-  else 
+  else
   {
     return !(digitalRead(this->limitSwitchPinNeg));
   }

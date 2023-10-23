@@ -1,6 +1,8 @@
 #include "Pulley.h"
 #include "PatchyUtil.h"
 #include "Gripper.h"
+#include "Logger.h"
+#include "HCSR04.h"
 
 /** Pulley Constants **/
 const byte X_AXIS_DIR_PIN = 3;
@@ -17,7 +19,7 @@ const int STEPS = 2;
 const int STEPS_MANUAL = 100;
 
 // Get to center of Gantry
-const int RESET_STEPS_X = 525; // Half the length of X in steps
+const int RESET_STEPS_X = 525;  // Half the length of X in steps
 const int RESET_STEPS_Y = 1350; // Half the length of Y in steps
 
 /** Gripper Constants **/
@@ -46,17 +48,18 @@ Pulley *yAxis;
 /** Gripper **/
 Gripper *gripper;
 
+/** Ultra Sonic Sensor **/
+HCSR04 *distanceSensor;
+
 /** I2C **/
 PatchyUtil::Status STATUS;
 
 /** Positions **/
-
 const PatchyUtil::Coordinate Boxes[4] = {
-  {-175, 360},
-  {150, 360},
-  {-170, 0},
-  {150, 0}
-};
+    {-175, 360},
+    {150, 360},
+    {-170, 0},
+    {150, 0}};
 
 void setup()
 {
@@ -66,99 +69,113 @@ void setup()
   xAxis = new Pulley(X_AXIS_DIR_PIN, X_AXIS_STEP_PIN, X_AXIS_LS_POS_PIN, X_AXIS_LS_NEG_PIN);
   yAxis = new Pulley(Y_AXIS_DIR_PIN, Y_AXIS_STEP_PIN, Y_AXIS_LS_POS_PIN, Y_AXIS_LS_NEG_PIN);
 
-  // Initialize Gripper
-  gripper = new Gripper(SERVO_PIN, LIN_ACT_PIN1, LIN_ACT_PIN2, EN_PIN);
+  // Initialize Distance Sensor
+  distanceSensor = new HCSR04(TRIG_PIN, ECHO_PIN);
 
-  
+  // Initialize Gripper
+  gripper = new Gripper(SERVO_PIN, LIN_ACT_PIN1, LIN_ACT_PIN2, EN_PIN, distanceSensor);
+
   // Reset Positions
-  gripper->open();
-  gripper->up(MAX_UP_DELAY);
-  findCorner();
-  resetPosition();
+  reset();
 }
 
+bool hasRunOnce = false;
 void loop()
 {
-  receiveInstruction();
+  if (!hasRunOnce)
+  {
+    interpretInstruction(2090302561);
+    hasRunOnce = true;
+  }
 }
 
-void receiveInstruction() {
-  while (Serial.available()) {
+void receiveInstruction()
+{
+  while (Serial.available())
+  {
     char character = Serial.read();
-    if (character == '<' && (!instructionReceived)) {
+    if (character == '<' && (!instructionReceived))
+    {
       STATUS = PatchyUtil::Status::Unset;
       instructionReceived = true;
       receivedData = "";
-    } else if (character == '>' && (instructionReceived)) {
+    }
+    else if (character == '>' && (instructionReceived))
+    {
       long hashedData = PatchyUtil::hashString(receivedData);
-      // Serial.print(hashedData);
       interpretInstruction(hashedData);
       instructionReceived = false;
-    } else if (instructionReceived) {
+    }
+    else if (instructionReceived)
+    {
       receivedData += character;
     }
   }
 }
 
-void goToCoordinate(PatchyUtil::Coordinate coord) 
+void goToCoordinate(PatchyUtil::Coordinate coord)
 {
-  if (coord.y < 0) 
+  if (coord.y < 0)
   {
     yAxis->moveCounterClockwise(abs(coord.y));
-  } else {
+  }
+  else
+  {
     yAxis->moveClockwise(coord.y);
   }
 
-  if (coord.x < 0) 
+  if (coord.x < 0)
   {
     xAxis->moveCounterClockwise(abs(coord.x));
-  } else {
+  }
+  else
+  {
     xAxis->moveClockwise(coord.x);
   }
 }
 
-void interpretInstruction(const long input) {
-  PatchyUtil::Axis axis;
+void interpretInstruction(const long input)
+{
+
   PatchyUtil::Instruction instructionInput = static_cast<PatchyUtil::Instruction>(input);
 
-  if (instructionInput  == PatchyUtil::Instruction::Grab) 
+  switch (instructionInput)
   {
-    // executeGrabInstruction();
-     for (const auto &coordinate : Boxes) 
-     {
-       goToCoordinate(coordinate);
-       executeGrabInstruction();
-       delay(500);
-     }
+  case PatchyUtil::Instruction::Manual:
+    for (const auto &coordinate : Boxes)
+    {
+      goToCoordinate(coordinate);
+      executeGrabInstruction();
+      delay(500);
+    }
     return;
-  }
 
-  if (instructionInput == PatchyUtil::Instruction::Reset) 
-  {
-    gripper->open();
-    gripper->up(MAX_UP_DELAY);
-    findCorner();
-    resetPosition();
+  case PatchyUtil::Instruction::Rst:
+    reset();
     return;
-  }
 
-  if (instructionInput == PatchyUtil::Instruction::Up || instructionInput == PatchyUtil::Instruction::Down)
-  {
-    axis = PatchyUtil::Axis::Y;
-  }
-  else if (instructionInput == PatchyUtil::Instruction::Left || instructionInput == PatchyUtil::Instruction::Right)
-  {
-    axis = PatchyUtil::Axis::X;
-  }
-  else
-  {
+  case PatchyUtil::Instruction::Grab:
+    executeGrabInstruction();
+    break;
+
+  case PatchyUtil::Instruction::Up:
+  case PatchyUtil::Instruction::Down:
+    executeMovementInstruction(PatchyUtil::Axis::Y, instructionInput);
+    break;
+
+  case PatchyUtil::Instruction::Left:
+  case PatchyUtil::Instruction::Right:
+    executeMovementInstruction(PatchyUtil::Axis::X, instructionInput);
+    break;
+
+  default:
     sendStatus(PatchyUtil::Status::Invalid);
     return;
   }
-  executeMovementInstruction(axis, instructionInput);
 }
 
-void executeMovementInstruction(PatchyUtil::Axis axis, PatchyUtil::Instruction instructionInput) {
+void executeMovementInstruction(PatchyUtil::Axis axis, PatchyUtil::Instruction instructionInput)
+{
   PatchyUtil::Status outcome;
   switch (axis)
   {
@@ -191,8 +208,9 @@ void executeMovementInstruction(PatchyUtil::Axis axis, PatchyUtil::Instruction i
   Serial.println(static_cast<int>(outcome));
 }
 
-void executeGrabInstruction() {
-  
+void executeGrabInstruction()
+{
+
   gripper->down(MAX_DOWN_DELAY);
   delay(ACTION_DELAY);
   gripper->close();
@@ -205,23 +223,8 @@ void executeGrabInstruction() {
   sendStatus(PatchyUtil::Status::Success);
 }
 
-void findCorner() 
+void dropOff()
 {
-  bool notCornerX = true;
-  bool notCornerY = true;
-
-  while (notCornerX || notCornerY) {
-    if (notCornerX) {
-      notCornerX = xAxis->moveClockwise(STEPS);
-    }
-    if (notCornerY) {
-      notCornerY = yAxis->moveClockwise(STEPS);
-    }
-  }
-}
-
-void dropOff() {
-
   findCorner();
 
   gripper->down(MAX_DOWN_DELAY);
@@ -233,12 +236,43 @@ void dropOff() {
   resetPosition();
 }
 
-void resetPosition() { 
+void sendStatus(const PatchyUtil::Status status)
+{
+  STATUS = status;
+  Serial.println(static_cast<int>(status));
+}
+
+// TODO: Move to PatchyUtil
+// ---------- UTIL --------- //
+
+void resetPosition()
+{
   yAxis->moveCounterClockwise(RESET_STEPS_Y);
   xAxis->moveCounterClockwise(RESET_STEPS_X);
 }
 
-void sendStatus(const PatchyUtil::Status status) { 
-  STATUS = status;
-  Serial.println(static_cast<int>(status));
+void reset()
+{
+  gripper->open();
+  gripper->up(MAX_UP_DELAY);
+  findCorner();
+  resetPosition();
+}
+
+void findCorner()
+{
+  bool notCornerX = true;
+  bool notCornerY = true;
+
+  while (notCornerX || notCornerY)
+  {
+    if (notCornerX)
+    {
+      notCornerX = xAxis->moveClockwise(STEPS);
+    }
+    if (notCornerY)
+    {
+      notCornerY = yAxis->moveClockwise(STEPS);
+    }
+  }
 }

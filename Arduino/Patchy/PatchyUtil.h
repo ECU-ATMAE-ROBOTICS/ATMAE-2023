@@ -5,10 +5,10 @@
 class PatchyUtil
 {
 public:
-    struct Coordinate 
+    struct Coordinate
     {
-      int x;
-      int y;
+        int x;
+        int y;
     };
 
     /**
@@ -29,8 +29,8 @@ public:
         Left = 2090468272,
         Right = 273236323,
         Grab = 2090302561,
-        Reset = 1935050542
-
+        Rst = 1935050542,
+        Manual = 221964931
     };
 
     /**

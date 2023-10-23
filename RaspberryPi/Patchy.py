@@ -15,6 +15,10 @@ import RPi.GPIO as GPIO
 # Third-Party
 import cv2
 
+# GPIO setup
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(39, GPIO.IN)
+GPIO.setup(41, GPIO.IN)  
 
 async def processInstruction(serialController, instruction):
     """
@@ -24,60 +28,59 @@ async def processInstruction(serialController, instruction):
         serialController: The Serial controller instance.
         instruction (str): The instruction to be processed.
     """
-    await serialController.sendMessage(instruction)
-    data = await serialController.receiveMessage()
-    if data:
-        logging.info(f"Status Received: {data}")
-    else:
-        logging.error("Failed to receive data")
+    try:
+        await serialController.sendMessage(instruction)
+        data = await serialController.receiveMessage()
+        if data:
+            logging.info(f"Status Received: {data}")
+        else:
+            logging.error("Failed to receive data")
+    except Exception as e:
+        logging.error(f"Error in processInstruction: {e}")
 
-
-def checkStop(RUN):
-    if RUN:
-        return GPIO.input(39) == GPIO.LOW
-    else:
-        return False
-    
+def checkStop():
+    return GPIO.input(39) == GPIO.LOW
 
 async def main(showFrame: bool = False) -> None:
     """
-    Main coroutine to continuously capture frames and search for cats.
+    Main coroutine to continuously capture frames and search for boxes
     """
-    serialController = SerialCommunicator()  # Initialize SerialCommunicator instance
-    visionController = VisionController(
-        ColorModel(ColorConstants.PINK_LOWER_BOUND, ColorConstants.PINK_UPPER_BOUND)
-    )
+    try:
+        serialController = SerialCommunicator()
+        visionController = VisionController(
+            ColorModel(ColorConstants.PINK_LOWER_BOUND, ColorConstants.PINK_UPPER_BOUND)
+        )
 
-    viewer = Viewer()
+        viewer = Viewer()
 
-    RUN = True
+        while True:  # GPIO loop
+            if GPIO.input(41) == GPIO.HIGH:
+                while checkStop():  # System Loop
+                    frame = await viewer.captureFrame()
+                    direction, corners = visionController.processFrame(frame)
 
-    while True:  # GPIO loop
-        if GPIO.input(41) == GPIO.HIGH:
-            RUN = True
+                    if frame is not None:
 
-            while RUN:  # System Loop
-                frame = await viewer.captureFrame()
-                direction, corners = visionController.processFrame(frame)
+                        if showFrame:
+                            if corners is not None and len(corners) == 4:
+                                cv2.rectangle(frame, corners[0], corners[2], (255, 0, 0), 2)
+                            cv2.imshow("frame", frame)
+                            cv2.waitKey(1)
 
-                RUN = checkStop()
-                if frame is not None:
+                        if direction:
+                            await processInstruction(serialController, direction)
+                        else:
+                            logging.info("No color detected.")
 
-                    if showFrame:
-                        if corners is not None and len(corners) == 4:
-                            cv2.rectangle(frame, corners[0], corners[2], (255, 0, 0), 2)
-                        cv2.imshow("frame", frame)
-                        cv2.waitKey(1)
-
-                    if direction:
-                        await processInstruction(serialController, direction)  # Pass serialController
+                        if checkStop():
+                            time.sleep(1)  # Sleep so frame capture isn't spamming.
                     else:
-                        logging.info("No color detected.")
+                        logging.warning("Frame capture failed.")
+                        if checkStop():
+                            time.sleep(1)  # Sleep to avoid spamming in case of failure
 
-                    RUN = checkStop()
-                else:
-                    logging.warning("Frame capture failed.")
+    except Exception as e:
+        logging.error(f"Error in main: {e}")
 
-                print()
-                time.sleep(1)  # Sleep so frame capture isn't spamming.
-                RUN = checkStop()
+if __name__ == "__main__":
+    asyncio.run(main())

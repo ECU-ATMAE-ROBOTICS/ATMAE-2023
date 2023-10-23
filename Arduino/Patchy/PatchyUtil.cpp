@@ -5,8 +5,6 @@
 const long INITIAL_HASH = 5381;
 const long LONG_MAX = 2147483647L; // Maximum value of a long
 
-
-
 static long PatchyUtil::hashString(const String &str)
 {
   long hash = INITIAL_HASH;
@@ -19,5 +17,3 @@ static long PatchyUtil::hashString(const String &str)
 
   return hash;
 }
-
-
