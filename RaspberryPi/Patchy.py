@@ -8,7 +8,6 @@ from CommunicatorCommon.SerialCommunicator import SerialCommunicator  # Import S
 # Built-in
 import asyncio
 import logging
-import threading
 import time
 import RPi.GPIO as GPIO
 
