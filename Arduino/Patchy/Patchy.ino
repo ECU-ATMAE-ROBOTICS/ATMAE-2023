@@ -40,14 +40,11 @@ const int ACTION_DELAY = 750;
 
 /** Parsing Variables **/
 bool instructionReceived = false;
-String receivedData;
+String receivedData = "";
 
 /** Pulleys **/
 Pulley *xAxis;
 Pulley *yAxis;
-
-/** HCSR04 **/
-HCSR04 *distanceSensor;
 
 /** Gripper **/
 Gripper *gripper;
@@ -175,7 +172,6 @@ void interpretInstruction(const long input)
     sendStatus(PatchyUtil::Status::Invalid);
     return;
   }
-  executeMovementInstruction(axis, instructionInput);
 }
 
 void executeMovementInstruction(PatchyUtil::Axis axis, PatchyUtil::Instruction instructionInput)
