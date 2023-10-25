@@ -10,12 +10,11 @@
  * @class Gripper
  * @brief A class for controlling a robotic gripper with a servo and a linear actuator.
  */
-class Gripper 
+class Gripper
 {
 public:
-
   Servo *gripperServo; // Servo controlling the gripper arm
-  HCSR04 *distanceSensor; // Distance sensor
+  HCSR04 *distanceSensor;
 
   /**
    * @brief Constructor for the Gripper class.
@@ -24,9 +23,9 @@ public:
    * @param linActPin1 The pin for controlling the Linear Actuator.
    * @param linActPin2 The pin for controlling the Linear Actuator.
    * @param enPin
-   * @param hscr04
+   * @param distanceSensor
    */
-  Gripper(const byte servoPin, const byte linActPin1, const byte linActPin2, const byte enPin, const HCSR04 *hscr04);
+  Gripper(const byte servoPin, const byte linActPin1, const byte linActPin2, const byte enPin);
 
   /**
    * @brief Move the gripper into an open state.
@@ -48,7 +47,7 @@ public:
    * @param delay The delay for the movement.
    * @return True if the movement was successful, false otherwise.
    */
-  void up(const byte delay);
+  void up(const int delay);
 
   /**
    * @brief Move the linear actuator down.
@@ -56,22 +55,10 @@ public:
    * @param delay The delay for the movement.
    * @return True if the movement was successful, false otherwise.
    */
-  void down(const byte delay);
-
-  /**
-   * @brief Move the linear actuator down without delay.
-   */
-  void down();
+  void down(const int delay);
 
 private:
-  /**
-   * @brief Move the servo to a specified angle.
-   *
-   * @param duration 1000ms to close, 2000ms to open
-   */
-  void move(const int duration);
-
-  byte servoPin; // Pin for controlling the servo.
+  byte servoPin;   // Pin for controlling the servo.
   byte linActPin1; // Pin for controlling the linear actuator.
   byte linActPin2; // Pin for controlling the linear actuator.
   byte enPin;

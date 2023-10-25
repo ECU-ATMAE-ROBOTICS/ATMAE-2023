@@ -2,44 +2,31 @@
 
 Logger::Logger(const int baudRate)
 {
-    Serial.begin(baudRate);
+    Serial1.begin(baudRate);
 }
 
-void Logger::logMessage(const LogLevel level, const String &message)
+template <typename T>
+void Logger::logMessage(const LogLevel level, const T message)
 {
     switch (level)
     {
     case INFO:
-        Serial.print("[INFO] ");
+        Serial1.print("[INFO] ");
         break;
     case WARNING:
-        Serial.print("[WARNING] ");
+        Serial1.print("[WARNING] ");
         break;
     case ERROR:
-        Serial.print("[ERROR] ");
+        Serial1.print("[ERROR] ");
+        break;
+    case DEBUG:
+        Serial1.print("[DEBUG] ");
         break;
     }
-    Serial.println(message);
-}
-
-void Logger::logMessage(const LogLevel level, const int message)
-{
-    switch (level)
-    {
-    case INFO:
-        Serial.print("[INFO] ");
-        break;
-    case WARNING:
-        Serial.print("[WARNING] ");
-        break;
-    case ERROR:
-        Serial.print("[ERROR] ");
-        break;
-    }
-    Serial.println(message);
+    Serial1.println(message);
 }
 
 void Logger::newLine()
 {
-    Serial.println();
+    Serial1.println();
 }

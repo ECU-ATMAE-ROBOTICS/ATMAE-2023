@@ -1,6 +1,6 @@
 #include "HCSR04.h"
 
-HCSR04::HCSR04(const byte trigPin, const byte echoPin) 
+HCSR04::HCSR04(const byte trigPin, const byte echoPin)
 {
   this->trigPin = trigPin;
   this->echoPin = echoPin;

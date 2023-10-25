@@ -44,14 +44,14 @@ private:
      *
      * @return True if the pulley is at the limit position, false otherwise.
      */
-    bool isEdge();
+    bool isEdge(bool isPositive);
 
     /**
      * @brief Generate a step pulse to move the pulley.
      *
      * @return True if the step was successful, false otherwise.
      */
-    bool takeStep();
+    bool takeStep(bool isPositive);
 
     /**
      * @brief Move the pulley for a specified number of steps.
@@ -59,7 +59,7 @@ private:
      * @param steps The number of steps to move the pulley.
      * @return True if the movement was successful, false otherwise.
      */
-    bool move(const unsigned int steps);
+    bool move(const unsigned int steps, bool isPositive);
 };
 
 #endif

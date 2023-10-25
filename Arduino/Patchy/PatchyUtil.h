@@ -5,6 +5,12 @@
 class PatchyUtil
 {
 public:
+    struct Coordinate
+    {
+        int x;
+        int y;
+    };
+
     /**
      * @brief Calculate a hash value for the input string.
      *
@@ -22,7 +28,9 @@ public:
         Down = 2090192221,
         Left = 2090468272,
         Right = 273236323,
-        Grip = 2090302561
+        Grab = 2090302561,
+        Rst = 1935050542,
+        Manual = 221964931
     };
 
     /**

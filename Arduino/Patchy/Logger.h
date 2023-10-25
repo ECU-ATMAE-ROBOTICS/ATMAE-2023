@@ -11,7 +11,8 @@ enum LogLevel
 {
     INFO,
     WARNING,
-    ERROR
+    ERROR,
+    DEBUG
 };
 
 /**
@@ -33,8 +34,8 @@ public:
      * @param level The log level of the message.
      * @param message The message to be logged.
      */
-    void logMessage(const LogLevel level, const String &message);
-    void logMessage(const LogLevel level, const int message);
+    template <typename T>
+    void logMessage(const LogLevel level, const T message);
 
     /**
      * Log a newline.
