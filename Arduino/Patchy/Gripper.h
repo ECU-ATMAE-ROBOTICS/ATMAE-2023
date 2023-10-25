@@ -25,7 +25,7 @@ public:
    * @param enPin
    * @param distanceSensor
    */
-  Gripper(const byte servoPin, const byte linActPin1, const byte linActPin2, const byte enPin, const HCSR04 *distanceSensor);
+  Gripper(const byte servoPin, const byte linActPin1, const byte linActPin2, const byte enPin);
 
   /**
    * @brief Move the gripper into an open state.

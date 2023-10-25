@@ -32,10 +32,11 @@ const byte EN_PIN = 6;
 const byte TRIG_PIN = 47;
 const byte ECHO_PIN = 45;
 
-// In ms
+// In ms delays
 const int MAX_DOWN_DELAY = 12000;
 const int MAX_UP_DELAY = 12000;
-const int ACTION_DELAY = 1000;
+const int SERVO_DELAY = 1650;
+const int ACTION_DELAY = 750;
 
 /** Parsing Variables **/
 bool instructionReceived = false;
@@ -49,31 +50,29 @@ Pulley *yAxis;
 Gripper *gripper;
 
 /** Ultra Sonic Sensor **/
-HCSR04 *distanceSensor;
+// HCSR04 *distanceSensor;
 
 /** I2C **/
 PatchyUtil::Status STATUS;
 
 /** Positions **/
 const PatchyUtil::Coordinate Boxes[4] = {
-    {-175, 360},
-    {150, 360},
-    {-170, 0},
-    {150, 0}};
+    {0, 0},
+    {0, 450},
+    {-420, 30},
+    {-420, 400}};
 
 void setup()
 {
-  Serial.begin(9600);
-
   // Initialize the Pulleys
   xAxis = new Pulley(X_AXIS_DIR_PIN, X_AXIS_STEP_PIN, X_AXIS_LS_POS_PIN, X_AXIS_LS_NEG_PIN);
   yAxis = new Pulley(Y_AXIS_DIR_PIN, Y_AXIS_STEP_PIN, Y_AXIS_LS_POS_PIN, Y_AXIS_LS_NEG_PIN);
 
   // Initialize Distance Sensor
-  distanceSensor = new HCSR04(TRIG_PIN, ECHO_PIN);
+  // distanceSensor = new HCSR04(TRIG_PIN, ECHO_PIN);
 
   // Initialize Gripper
-  gripper = new Gripper(SERVO_PIN, LIN_ACT_PIN1, LIN_ACT_PIN2, EN_PIN, distanceSensor);
+  gripper = new Gripper(SERVO_PIN, LIN_ACT_PIN1, LIN_ACT_PIN2, EN_PIN);
 
   // Reset Positions
   reset();
@@ -84,7 +83,7 @@ void loop()
 {
   if (!hasRunOnce)
   {
-    interpretInstruction(2090302561);
+    interpretInstruction(221964931);
     hasRunOnce = true;
   }
 }
@@ -144,6 +143,7 @@ void interpretInstruction(const long input)
   case PatchyUtil::Instruction::Manual:
     for (const auto &coordinate : Boxes)
     {
+      delay(500);
       goToCoordinate(coordinate);
       executeGrabInstruction();
       delay(500);
@@ -214,7 +214,7 @@ void executeGrabInstruction()
   gripper->down(MAX_DOWN_DELAY);
   delay(ACTION_DELAY);
   gripper->close();
-  delay(ACTION_DELAY);
+  delay(SERVO_DELAY);
   gripper->up(MAX_UP_DELAY);
   delay(ACTION_DELAY);
 
