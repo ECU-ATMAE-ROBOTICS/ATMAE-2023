@@ -40,7 +40,7 @@ void Logger::logMessage(const LogLevel level, const int message)
         Serial.print("[ERROR] ");
         break;
     }
-    Serial.println(message);
+    Serial1.println(message);
 }
 
 void Logger::newLine()
