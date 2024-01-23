@@ -1,8 +1,10 @@
 #include "Logger.h"
 
-Logger::Logger(const int baudRate)
+Logger::Logger(const int baudRate, const HardwareSerial serial)
 {
-    Serial1.begin(baudRate);
+
+    this->_serial = &serial;
+    this->_serial->begin(baudRate);
 }
 
 template <typename T>
@@ -11,22 +13,22 @@ void Logger::logMessage(const LogLevel level, const T message)
     switch (level)
     {
     case INFO:
-        Serial1.print("[INFO] ");
+        _serial->print("[INFO] ");
         break;
     case WARNING:
-        Serial1.print("[WARNING] ");
+        _serial->print("[WARNING] ");
         break;
     case ERROR:
-        Serial1.print("[ERROR] ");
+        _serial->print("[ERROR] ");
         break;
     case DEBUG:
-        Serial1.print("[DEBUG] ");
+        _serial->print("[DEBUG] ");
         break;
     }
-    Serial1.println(message);
+    _serial->println(message);
 }
 
 void Logger::newLine()
 {
-    Serial1.println();
+    _serial->println();
 }

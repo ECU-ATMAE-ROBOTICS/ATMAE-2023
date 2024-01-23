@@ -25,8 +25,9 @@ public:
      * Constructor for the Logger class.
      *
      * @param baudRate The baud rate for serial communication.
+     * @param serial The serial line to open communication on.
      */
-    Logger(const int baudRate);
+    Logger(const int baudRate, const HardwareSerial serial);
 
     /**
      * Log a message with a specific log level.
@@ -44,6 +45,7 @@ public:
 
 private:
     int _baudRate; /**< The baud rate for serial communication. */
+    HardwareSerial* _serial; // The serial line communication is done on.
 };
 
 #endif

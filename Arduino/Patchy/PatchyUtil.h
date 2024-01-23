@@ -17,7 +17,7 @@ public:
      * @param str The input string for which the hash is calculated.
      * @return The calculated hash value as a long integer.
      */
-    static long hashString(const String &str);
+    static long hashString(const char *str);
 
     /**
      * Enum defining different directions as hashes.
@@ -51,6 +51,16 @@ public:
     {
         X,
         Y
+    };
+
+    enum class State 
+    {
+      Receive,
+      Parse,
+      Grab,
+      Drop,
+      Response,
+      Reset
     };
 };
 
