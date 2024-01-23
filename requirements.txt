@@ -1,0 +1,7 @@
+CommunicatorCommon @ git+https://github.com/ECU-ATMAE-ROBOTICS/CommunicatorCommon.git@1c2428f67d4d8490a3e3291d769138e4fe101fde
+numpy==1.26.3
+opencv-python==4.9.0.80
+pyserial==3.5
+pyzbar==0.1.9
+smbus2==0.4.3
+VisionCommon @ git+https://github.com/ECU-ATMAE-ROBOTICS/VisionCommon@e05f72e39f37d63a24fe33316198654cff0e05f4
