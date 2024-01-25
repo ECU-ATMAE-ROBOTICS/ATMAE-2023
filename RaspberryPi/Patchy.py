@@ -5,81 +5,32 @@ from Vision.Src.ColorModel import ColorModel
 from VisionCommon.Viewer import Viewer
 from CommunicatorCommon.SerialCommunicator import SerialCommunicator  # Import SerialCommunicator
 
-# Built-in
-import asyncio
-import logging
-import time
-import RPi.GPIO as GPIO
 
-# Third-Party
-import cv2
+def main():
 
-# GPIO setup
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(39, GPIO.IN)
-GPIO.setup(41, GPIO.IN)  
+    colorModel = ColorModel(ColorConstants.PINK_LOWER_BOUND, ColorConstants.PINK_UPPER_BOUND)
+    visionController = VisionController(colorModel)
+    serialCommunicator = SerialCommunicator()
+    viewer = Viewer()
 
-async def processInstruction(serialController, instruction):
-    """
-    Process the instruction and handle communication with the serial controller.
+    while (True):
+        frame = viewer.captureFrame()
+        boxCenter = visionController.getBoxCoords(frame)
 
-    Args:
-        serialController: The Serial controller instance.
-        instruction (str): The instruction to be processed.
-    """
-    try:
-        await serialController.sendMessage(instruction)
-        data = await serialController.receiveMessage()
-        if data:
-            logging.info(f"Status Received: {data}")
+        if (boxCenter is not None):
+            msgPacket = f"{boxCenter[0]},{boxCenter[1]}"
+
+            try:
+                serialCommunicator.sendMessage(msgPacket)
+            except Exception as e:
+                print(f"Failed to send message: {msgPacket}")
+
         else:
-            logging.error("Failed to receive data")
-    except Exception as e:
-        logging.error(f"Error in processInstruction: {e}")
+            print(boxCenter)
 
-def checkStop():
-    return GPIO.input(39) == GPIO.LOW
+        #TODO Wait for response code before sending next boxCenter
 
-async def main(showFrame: bool = False) -> None:
-    """
-    Main coroutine to continuously capture frames and search for boxes
-    """
-    try:
-        serialController = SerialCommunicator()
-        visionController = VisionController(
-            ColorModel(ColorConstants.PINK_LOWER_BOUND, ColorConstants.PINK_UPPER_BOUND)
-        )
+if __name__ == '__main__':
+    main()
 
-        viewer = Viewer()
 
-        while True:  # GPIO loop
-            if GPIO.input(41) == GPIO.HIGH:
-                while checkStop():  # System Loop
-                    frame = await viewer.captureFrame()
-                    direction, corners = visionController.processFrame(frame)
-
-                    if frame is not None:
-
-                        if showFrame:
-                            if corners is not None and len(corners) == 4:
-                                cv2.rectangle(frame, corners[0], corners[2], (255, 0, 0), 2)
-                            cv2.imshow("frame", frame)
-                            cv2.waitKey(1)
-
-                        if direction:
-                            await processInstruction(serialController, direction)
-                        else:
-                            logging.info("No color detected.")
-
-                        if checkStop():
-                            time.sleep(1)  # Sleep so frame capture isn't spamming.
-                    else:
-                        logging.warning("Frame capture failed.")
-                        if checkStop():
-                            time.sleep(1)  # Sleep to avoid spamming in case of failure
-
-    except Exception as e:
-        logging.error(f"Error in main: {e}")
-
-if __name__ == "__main__":
-    asyncio.run(main())

@@ -1,15 +1,12 @@
 import cv2
 import numpy as np
-import logging
 from typing import List, Tuple
-from .Constants.VisionConstants import ColorConstants
 
 
 class ColorModel:
     def __init__(self, lowerColorBound, upperColorBound):
         self.lowerColorBound = lowerColorBound
         self.upperColorBound = upperColorBound
-        self.logger = logging.getLogger(__name__)
 
     def locateColor(self, image: np.ndarray) -> Tuple[List[List[int]], List[float]]:
         """
@@ -33,7 +30,5 @@ class ColorModel:
                 x, y, w, h = cv2.boundingRect(contour)
                 colorBoxes.append([int(x), int(y), int(w), int(h)])
                 confidences.append(float(area))
-
-        self.logger.info(f"Found {len(colorBoxes)} instances of the color in the image.")
 
         return colorBoxes, confidences

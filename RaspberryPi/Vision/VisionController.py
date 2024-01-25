@@ -1,7 +1,6 @@
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Optional
 from .Src.ColorModel import ColorModel
-from .Src.Constants.VisionConstants import VisionConstants
 
 class VisionController:
     def __init__(self, model: ColorModel):
@@ -13,21 +12,20 @@ class VisionController:
         """
         self.model = model
 
-    def directionFromCenterWithCorners(self, frame: np.ndarray) -> Tuple[str, Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int], Tuple[int, int]]]:
+    def getBoxCoords(self, frame: np.ndarray) -> Optional[Tuple[int, int]]:
         """
-        Determines the direction of the closest color to the center of the frame and returns the corners of the bounding box for the closest color.
+        Determines the coords of the closest box to the center of the frame and returns the center of the bounding box for the closest box.
 
         Args:
             frame (np.ndarray): Input frame in the form of a NumPy array.
 
         Returns:
-            Tuple[str, Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int], Tuple[int, int]]]: A tuple where the first element is a string indicating the direction of the closest color from the center and the second element is a tuple containing the corners of the bounding box.
-            If the color is within the tolerance range of the center, it returns "center" and None for the bounding box corners.
+            Tuple[int, int]: A tuple of the coords of the closest box to the center of the frame
         """
         colorBoxes, _ = self.model.locateColor(frame)
 
         if not colorBoxes:
-            return None, None
+            return None
 
         centerX, centerY = frame.shape[1] // 2, frame.shape[0] // 2
 
@@ -40,6 +38,7 @@ class VisionController:
             distance = np.sqrt((colorCenterX - centerX) ** 2 + (colorCenterY - centerY) ** 2)
             colorDistances.append((box, distance))
 
+        #TODO Return all boxes found, and their coords
         # Sort the color distances and choose the closest color
         colorDistances.sort(key=lambda x: x[1])
         closestColorBox = colorDistances[0][0]
@@ -48,33 +47,4 @@ class VisionController:
         colorCenterX = x + w // 2
         colorCenterY = y + h // 2
 
-        horizontalDistance = abs(centerX - colorCenterX)
-        verticalDistance = abs(centerY - colorCenterY)
-
-        corners = ((x, y), (x + w, y), (x + w, y + h), (x, y + h))
-
-        if horizontalDistance <= VisionConstants.CENTER_TOLERANCE and verticalDistance <= VisionConstants.CENTER_TOLERANCE:
-            return "center", None
-        elif horizontalDistance > verticalDistance:
-            if colorCenterX < centerX:
-                return "right", corners
-            else:
-                return "left", corners
-        else:
-            if colorCenterY < centerY:
-                return "down", corners
-            else:
-                return "up", corners
-
-    def processFrame(self, frame: np.ndarray) -> str:
-        """
-        Processes the frame and determines the direction of the closest color from the center.
-
-        Args:
-            frame (np.ndarray): Input frame in the form of a NumPy array.
-
-        Returns:
-            str: A string indicating the direction of the closest color from the center.
-        """
-        direction = self.directionFromCenterWithCorners(frame)
-        return direction
+        return (colorCenterX, colorCenterY)
