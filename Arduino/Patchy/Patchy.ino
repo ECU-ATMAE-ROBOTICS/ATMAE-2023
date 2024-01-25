@@ -20,6 +20,7 @@ void loop()
       // patchy->parseCoordinate(char *coordinate);
       break;
     case PatchyUtil::State::Grab:
+      // TODO Gripper does not utilize sound sensor
       // patchy->executeGrabInstruction();
       break;
     case PatchyUtil::State::Drop:
